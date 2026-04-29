@@ -57,6 +57,19 @@ def index():
     
     return render_template('app.html', username=session['username'])
 
+#---------------------------------------------------------------
+@app.route('/admin/ban/<username>')
+def ban_user_route(username):
+    # Security check: only admins can ban
+    admin = get_user(session.get('username'))
+    if not admin or not admin.get('is_admin'):
+        return redirect(url_for('index'))
+    
+    # Update the database
+    ban_user(username) 
+    return redirect(url_for('admin_panel'))
+#---------------------------------------------------------------
+
 @app.route('/auth')
 def login_page():
     if 'username' in session:
