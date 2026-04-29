@@ -50,7 +50,7 @@ def index():
     if not user:
         session.clear()
         return redirect(url_for('login_page'))
-    set_admin(session['username'], 1)
+   
     if user.get('is_banned', 0):
         session.clear()
         return render_template('banned.html')
