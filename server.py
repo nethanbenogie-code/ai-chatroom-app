@@ -57,7 +57,7 @@ def index():
     
     return render_template('app.html', username=session['username'])
 
-#---------------------------------------------------------------
+
 @app.route('/admin')
 def admin_panel():
     # 1. Check if they are even logged in
@@ -172,6 +172,15 @@ def save_profile():
     color = data.get('color', '#6C63FF')
     update_profile(session['username'], bio, color)
     return jsonify({'ok': True})
+
+@socketio.on('typing')
+def handle_typing(data):
+    # Broadcast to everyone else in the room that this user is typing
+    socketio.emit('display_typing', data, room=data['room'], include_self=False)
+
+@socketio.on('stop_typing')
+def handle_stop_typing(data):
+    socketio.emit('hide_typing', data, room=data['room'], include_self=False)
 
 @app.route('/api/rooms')
 def api_rooms():
