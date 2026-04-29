@@ -58,16 +58,23 @@ def index():
     return render_template('app.html', username=session['username'])
 
 #---------------------------------------------------------------
-@app.route('/admin/ban/<username>')
-def ban_user_route(username):
-    # Security check: only admins can ban
-    admin = get_user(session.get('username'))
-    if not admin or not admin.get('is_admin'):
+@app.route('/admin')
+def admin_panel():
+    # 1. Check if they are even logged in
+    if 'username' not in session:
+        return redirect(url_for('login_page'))
+
+    # 2. Look up their details in the Postgres database
+    user = get_user(session['username'])
+
+    # 3. If they aren't an admin, kick them back to the chat room
+    if not user or not user.get('is_admin'):
+        print(f"Unauthorized access attempt by: {session['username']}")
         return redirect(url_for('index'))
-    
-    # Update the database
-    ban_user(username) 
-    return redirect(url_for('admin_panel'))
+
+    # 4. Only if they ARE an admin, show the panel
+    all_users = get_all_users()
+    return render_template('admin.html', users=all_users)
 #---------------------------------------------------------------
 
 @app.route('/auth')
