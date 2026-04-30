@@ -219,7 +219,10 @@ def api_me():
     if user:
         user = {k: v for k, v in user.items() if k not in ['password_hash']}
     return jsonify(user or {})
-
+# ------Manifest.json----------------------------------------
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
 # ── Password Reset Routes ──────────────────────────────────
 @app.route('/forgot-password')
 def forgot_password_page():
