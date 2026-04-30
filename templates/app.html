@@ -4,25 +4,133 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>ChatFlow</title>
+<!-- PWA Support (optional) -->
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#6C63FF">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ChatFlow">
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <style>
-/* (your existing CSS – keep as is) */
+/* ---------- BASE STYLES ---------- */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Space+Grotesk:wght@500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{ --bg:#0c0c12; --surface:#14141c; --surface2:#1a1a24; --surface3:#20202c; --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12); --accent:#6C63FF; --accent-dim:rgba(108,99,255,0.18); --text:#eeeef3; --muted:rgba(238,238,243,0.4); --online:#43B97F; --danger:#E63946; --warn:#F4A261; --r:14px; }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text); height:100vh;display:flex;overflow:hidden;}
-/* ... keep all your CSS exactly as you have it ... */
-/* (I'm omitting the full CSS for brevity, but you can keep yours) */
+:root{
+  --bg:#0c0c12;--surface:#14141c;--surface2:#1a1a24;--surface3:#20202c;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --accent:#6C63FF;--accent-dim:rgba(108,99,255,0.18);
+  --text:#eeeef3;--muted:rgba(238,238,243,0.4);
+  --online:#43B97F;--danger:#E63946;--warn:#F4A261;
+  --r:14px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden;}
+
+/* Mobile menu buttons */
+.mobile-menu-btn,.mobile-panel-btn{display:none;position:fixed;top:12px;z-index:1001;background:var(--accent);border:none;border-radius:10px;padding:10px;color:white;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.mobile-menu-btn{left:12px;}
+.mobile-panel-btn{right:12px;}
+
+/* Sidebar */
+#sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sb-top{padding:16px 16px 12px;border-bottom:1px solid var(--border);}
+.app-brand{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;}
+.app-brand .dot{color:var(--accent);}
+.search-wrap{position:relative;margin-top:10px;}
+.search-wrap input{width:100%;padding:8px 10px 8px 32px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.search-wrap input:focus{border-color:var(--accent);}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);}
+.sb-section{padding:10px 16px 4px;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between;}
+.sb-add{cursor:pointer;color:var(--muted);font-size:18px;line-height:1;}
+.room-item{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--muted);transition:all 0.15s;border-left:2px solid transparent;}
+.room-item:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+.room-item.active{background:var(--accent-dim);color:var(--text);border-left-color:var(--accent);}
+.room-item .cnt{margin-left:auto;font-size:11px;background:var(--surface3);border-radius:20px;padding:1px 7px;}
+.room-item.dm-item .hash{color:var(--online);}
+.sb-bottom{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);}
+.me-row{display:flex;align-items:center;gap:10px;}
+.me-info{flex:1;min-width:0;}
+.me-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.me-badge{font-size:11px;color:var(--muted);}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:6px;}
+.icon-btn:hover{background:var(--surface2);color:var(--text);}
+
+/* Main chat */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#chat-header{padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.header-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;}
+.header-desc{font-size:12px;color:var(--muted);margin-left:4px;}
+.online-pill{margin-left:auto;font-size:12px;color:var(--online);background:rgba(67,185,127,0.1);border-radius:20px;padding:3px 10px;}
+.header-actions{display:flex;gap:4px;}
+#messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:2px;}
+.msg-wrap{display:flex;align-items:flex-start;gap:10px;padding:3px 0;position:relative;}
+.msg-wrap:hover .msg-actions{opacity:1;}
+.ava{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+.msg-header{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;flex-wrap:wrap;}
+.msg-user{font-size:13px;font-weight:600;}
+.msg-time{font-size:11px;color:var(--muted);}
+.badge{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:500;}
+.badge.Member{background:rgba(108,99,255,0.15);color:#a9a2ff;}
+.badge.Active{background:rgba(244,162,97,0.15);color:#f4a261;}
+.badge.Veteran{background:rgba(230,57,70,0.15);color:#ff8a8f;}
+.msg-text{font-size:14px;line-height:1.55;word-break:break-word;}
+.msg-wrap.mine{flex-direction:row-reverse;}
+.msg-wrap.mine .msg-header{flex-direction:row-reverse;}
+.msg-wrap.mine .msg-text{background:var(--accent);border-radius:4px 14px 14px 14px;padding:8px 12px;display:inline-block;max-width:440px;}
+.msg-wrap.mine .msg-user{display:none;}
+.msg-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.rxn-badge{background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:3px;}
+.msg-actions{position:absolute;right:-4px;top:-6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;gap:2px;opacity:0;z-index:10;}
+.date-sep{text-align:center;font-size:11px;color:var(--muted);padding:8px 0;display:flex;align-items:center;gap:8px;}
+.date-sep::before,.date-sep::after{content:'';flex:1;height:1px;background:var(--border);}
+#typing-bar{padding:0 20px 6px;font-size:12px;color:var(--muted);font-style:italic;min-height:22px;}
+#input-row{padding:12px 20px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:10px;}
+#msg-input{flex:1;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;resize:none;max-height:120px;}
+#msg-input:focus{border-color:var(--accent);}
+#send-btn{width:42px;height:42px;border-radius:10px;background:var(--accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+/* Right panel */
+#right-panel{width:240px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.rp-header{padding:14px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;text-transform:uppercase;color:var(--muted);}
+.rp-body{flex:1;overflow-y:auto;padding:8px;}
+.member-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;}
+.member-row:hover{background:var(--surface2);}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.online-dot.on{background:var(--online);}
+
+/* AI response */
+.ai-response{background:linear-gradient(135deg, rgba(108,99,255,0.1), rgba(108,99,255,0.05));border-radius:12px;padding:12px;margin-top:5px;}
+.ai-response strong{color:#6C63FF;}
+.ai-response code{background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;font-family:monospace;}
+
+/* Mobile responsive */
+@media (max-width: 768px){
+  .mobile-menu-btn,.mobile-panel-btn{display:block;}
+  #sidebar{position:fixed;left:-280px;top:0;bottom:0;z-index:1000;transition:left 0.3s;width:280px;}
+  #sidebar.open{left:0;}
+  #right-panel{position:fixed;right:-280px;top:0;bottom:0;z-index:1000;transition:right 0.3s;width:280px;}
+  #right-panel.open{right:0;}
+  #main{width:100%;}
+  #chat-header{padding-left:55px;padding-right:55px;}
+}
+
+/* Modal overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:20px;padding:28px;width:400px;max-width:94vw;}
+.modal .close{float:right;cursor:pointer;color:var(--muted);}
+.form-field{margin-bottom:14px;}
+.form-field label{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;}
+.form-field input,.form-field textarea{width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);}
+.modal-btn{width:100%;padding:11px;background:var(--accent);border:none;border-radius:8px;color:#fff;cursor:pointer;}
+.color-row{display:flex;gap:8px;margin-top:6px;}
+.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.color-swatch.sel{border-color:#fff;}
 </style>
 </head>
 <body>
 
-<!-- Mobile Menu Buttons -->
+<!-- Mobile menu toggles -->
 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
 <button class="mobile-panel-btn" onclick="toggleMobilePanel()">👥</button>
 
@@ -32,12 +140,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text); he
     <div class="app-brand">💬 Chat<span class="dot">Flow</span></div>
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Search messages..." id="global-search" oninput="onSearch(this.value)" onfocus="openSearch()" />
+      <input type="text" placeholder="Search messages..." id="global-search" oninput="onSearch(this.value)" onfocus="openSearch()">
     </div>
   </div>
-  <div class="sb-section">Rooms<span class="sb-add" title="Create room" onclick="openModal('room-modal')">＋</span></div>
+  <div class="sb-section">Rooms <span class="sb-add" onclick="openModal('room-modal')">＋</span></div>
   <div id="room-list"></div>
-  <div class="sb-section">Direct Messages<span class="sb-add" title="New DM" onclick="openModal('dm-modal')">＋</span></div>
+  <div class="sb-section">Direct Messages <span class="sb-add" onclick="openModal('dm-modal')">＋</span></div>
   <div id="dm-list"></div>
   <div class="sb-bottom">
     <div class="me-row">
@@ -46,13 +154,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text); he
         <div class="me-name" id="my-name-sb">{{ username }}</div>
         <div class="me-badge" id="my-badge-sb">Member · ● Online</div>
       </div>
-      <button class="icon-btn" title="Profile" onclick="openModal('profile-modal')">⚙</button>
-      <button class="icon-btn" title="Logout" onclick="location.href='/api/logout'">⏻</button>
+      <button class="icon-btn" onclick="openModal('profile-modal')">⚙</button>
+      <button class="icon-btn" onclick="location.href='/api/logout'">⏻</button>
     </div>
   </div>
 </div>
 
-<!-- Main chat -->
+<!-- Main chat area -->
 <div id="main">
   <div id="chat-header">
     <span id="header-hash" style="font-size:18px">💬</span>
@@ -60,36 +168,71 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text); he
     <span class="header-desc" id="header-desc"></span>
     <span class="online-pill" id="online-pill">0 online</span>
     <div class="header-actions">
-      <button class="icon-btn" title="Search" onclick="toggleSearch()">🔍</button>
-      <button class="icon-btn" title="Members" onclick="togglePanel()">👥</button>
+      <button class="icon-btn" onclick="toggleSearch()">🔍</button>
+      <button class="icon-btn" onclick="togglePanel()">👥</button>
     </div>
   </div>
-
-  <div id="search-panel">
-    <input type="text" id="search-input" placeholder="Search in this room..." oninput="roomSearch(this.value)" />
+  <div id="search-panel" style="display:none; position:absolute; top:54px; right:20px; width:320px; background:var(--surface2); border-radius:14px; padding:14px; z-index:100;">
+    <input type="text" id="search-input" placeholder="Search in this room..." oninput="roomSearch(this.value)" style="width:100%; padding:8px; background:var(--surface3); border:1px solid var(--border); border-radius:8px; color:white;">
     <div id="search-results"></div>
   </div>
-
   <div id="messages"></div>
   <div id="typing-bar"></div>
   <div id="input-row">
     <textarea id="msg-input" rows="1" placeholder="Message #General... (type /ai for AI help)" maxlength="1000" onkeydown="onKey(event)" oninput="onInputChange(this)"></textarea>
-    <button id="send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
+    <button id="send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24" width="17" height="17"><path d="M2 21l21-9L2 3v7l15 2-15 2z" fill="#fff"/></svg></button>
   </div>
 </div>
 
-<!-- Right panel -->
+<!-- Right panel (members) -->
 <div id="right-panel">
   <div class="rp-header">Members</div>
   <div class="rp-body" id="member-list"></div>
 </div>
 
-<!-- Modals (Profile, Create Room, DM) – same as you have, keep them -->
-<div class="overlay" id="profile-modal">...</div>
-<div class="overlay" id="room-modal">...</div>
-<div class="overlay" id="dm-modal">...</div>
+<!-- Profile Modal -->
+<div class="overlay" id="profile-modal">
+  <div class="modal">
+    <span class="close" onclick="closeModal('profile-modal')">✕</span>
+    <h2>Your Profile</h2>
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+      <div class="ava lg" id="prof-ava" style="width:48px;height:48px;font-size:16px;">?</div>
+      <div><div id="prof-username" style="font-size:16px; font-weight:600;">–</div><div id="prof-stats" style="font-size:12px; color:var(--muted);">0 messages · Member</div></div>
+    </div>
+    <div class="alert-sm" id="prof-alert"></div>
+    <div class="form-field"><label>Bio</label><textarea id="prof-bio" rows="3"></textarea></div>
+    <div class="form-field"><label>Avatar Color</label><div class="color-row" id="color-swatches"></div></div>
+    <div class="form-field"><label>Email</label><input type="text" id="prof-email" disabled></div>
+    <div class="form-field"><label>Member since</label><input type="text" id="prof-joined" disabled></div>
+    <button class="modal-btn" onclick="saveProfile()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Create Room Modal -->
+<div class="overlay" id="room-modal">
+  <div class="modal">
+    <span class="close" onclick="closeModal('room-modal')">✕</span>
+    <h2>Create a Room</h2>
+    <div class="alert-sm" id="room-alert"></div>
+    <div class="form-field"><label>Room Name</label><input type="text" id="new-room-name" maxlength="30"></div>
+    <div class="form-field"><label>Description</label><input type="text" id="new-room-desc" maxlength="80"></div>
+    <button class="modal-btn" onclick="createRoom()">Create Room</button>
+  </div>
+</div>
+
+<!-- DM Modal -->
+<div class="overlay" id="dm-modal">
+  <div class="modal">
+    <span class="close" onclick="closeModal('dm-modal')">✕</span>
+    <h2>Direct Message</h2>
+    <div class="alert-sm" id="dm-alert"></div>
+    <div class="form-field"><label>Username</label><input type="text" id="dm-target" maxlength="20"></div>
+    <button class="modal-btn" onclick="openDM()">Open DM</button>
+  </div>
+</div>
 
 <script>
+// ======================= GLOBALS =======================
 const ME = "{{ username }}";
 const socket = io();
 let currentRoom = 'General';
@@ -103,7 +246,7 @@ let typingTimer;
 const COLORS = ['#6C63FF','#FF6584','#43B97F','#F4A261','#2A9D8F','#E76F51','#457B9D','#E63946','#9C6ADE','#00BFA5','#FF7043','#5C6BC0'];
 const REACTIONS = ['👍','❤️','😂','😮','😢','🔥'];
 
-// Mobile functions
+// ======================= MOBILE UI =======================
 function toggleMobileSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function toggleMobilePanel() { document.getElementById('right-panel').classList.toggle('open'); }
 document.addEventListener('click', function(e) {
@@ -115,7 +258,7 @@ document.addEventListener('click', function(e) {
   if (panel.classList.contains('open') && !panel.contains(e.target) && !panelBtn.contains(e.target)) panel.classList.remove('open');
 });
 
-// Socket event handlers
+// ======================= SOCKET HANDLERS =======================
 socket.on('connect', () => console.log('Socket connected'));
 socket.on('history', (data) => {
   const box = document.getElementById('messages');
@@ -126,7 +269,7 @@ socket.on('history', (data) => {
     if (d && d !== lastDate) { appendDateSep(d); lastDate = d; }
     appendMsg(m);
   });
-  box.scrollTop = box.scrollHeight;
+  scrollToBottom();
 });
 socket.on('new_message', (msg) => { appendMsg(msg); scrollToBottom(); });
 socket.on('room_presence', (data) => {
@@ -135,7 +278,7 @@ socket.on('room_presence', (data) => {
   const key = data.room.replace(/\s/g,'_');
   const cntEl = document.getElementById(`cnt-${key}`);
   if (cntEl) cntEl.innerText = data.count;
-  loadMembers(); // refresh online dots
+  loadMembers();
 });
 socket.on('room_switched', (data) => { currentRoom = data.room; });
 socket.on('new_room', () => loadRooms());
@@ -168,7 +311,7 @@ socket.on('banned', (data) => { alert(`You have been banned: ${data.reason}`); l
 
 function scrollToBottom() { const box = document.getElementById('messages'); box.scrollTop = box.scrollHeight; }
 
-// Load data
+// ======================= LOAD DATA =======================
 window.addEventListener('load', async () => {
   await loadMe();
   await loadRooms();
@@ -225,6 +368,8 @@ function renderDMList() {
       <span class="hash">@</span> ${escapeHtml(u)}
     </div>`).join('');
 }
+
+// ======================= ROOM / DM SWITCHING =======================
 function switchRoom(name, desc) {
   currentDM = null;
   currentRoom = name;
@@ -253,7 +398,7 @@ function startDM(user) {
   closeModal('dm-modal');
 }
 
-// Messaging
+// ======================= MESSAGING =======================
 function sendMsg() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
@@ -279,33 +424,53 @@ function onInputChange(el) {
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-// AI Assistant
+// ======================= AI ASSISTANT =======================
 async function sendAIMessage(prompt) {
   appendAIMessage(prompt, true);
-  document.getElementById('typing-bar').innerHTML = '<span style="color:#6C63FF">🤖 AI Assistant is thinking...</span>';
+  const typingBar = document.getElementById('typing-bar');
+  typingBar.innerHTML = '<span style="color:#6C63FF">🤖 AI Assistant is thinking...</span>';
   try {
-    const res = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ prompt }) });
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
     const data = await res.json();
-    document.getElementById('typing-bar').innerHTML = '';
+    typingBar.innerHTML = '';
     if (data.ok) appendAIMessage(data.response, false);
-    else appendAIMessage('❌ AI error. Try again.', false);
-  } catch(e) { document.getElementById('typing-bar').innerHTML = ''; appendAIMessage('❌ Network error.', false); }
+    else appendAIMessage('❌ AI error. Please try again.', false);
+  } catch (e) {
+    typingBar.innerHTML = '';
+    appendAIMessage('❌ Network error. Could not reach AI.', false);
+  }
 }
 function appendAIMessage(text, isUser) {
   const box = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = `msg-wrap ${isUser ? 'mine' : ''}`;
   if (isUser) {
-    div.innerHTML = `<div class="ava" style="background:${myColor};color:#fff">${initials(ME)}</div><div class="msg-main"><div class="msg-header"><span class="msg-user" style="color:${myColor}">${ME}</span><span class="badge ${myBadge}">${myBadge}</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div><div class="msg-text">🤖 /ai ${escapeHtml(text)}</div></div>`;
+    div.innerHTML = `
+      <div class="ava" style="background:${myColor};color:#fff">${initials(ME)}</div>
+      <div class="msg-main">
+        <div class="msg-header"><span class="msg-user" style="color:${myColor}">${ME}</span><span class="badge ${myBadge}">${myBadge}</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div>
+        <div class="msg-text">🤖 /ai ${escapeHtml(text)}</div>
+      </div>`;
   } else {
-    div.innerHTML = `<div class="ava" style="background:#6C63FF;color:#fff">🤖</div><div class="msg-main"><div class="msg-header"><span class="msg-user" style="color:#6C63FF">AI Assistant</span><span class="badge">AI</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div><div class="msg-text ai-response">${formatAIText(escapeHtml(text))}</div></div>`;
+    div.innerHTML = `
+      <div class="ava" style="background:#6C63FF;color:#fff">🤖</div>
+      <div class="msg-main">
+        <div class="msg-header"><span class="msg-user" style="color:#6C63FF">AI Assistant</span><span class="badge">AI</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div>
+        <div class="msg-text ai-response">${formatAIText(escapeHtml(text))}</div>
+      </div>`;
   }
   box.appendChild(div);
   scrollToBottom();
 }
-function formatAIText(t) { return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+function formatAIText(t) {
+  return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+}
 
-// Message rendering
+// ======================= MESSAGE RENDERING =======================
 function appendMsg(m, isDM) {
   const box = document.getElementById('messages');
   const isMine = m.username === ME;
@@ -318,7 +483,7 @@ function appendMsg(m, isDM) {
       <div class="msg-text">${escapeHtml(m.text)}</div>
       <div class="msg-reactions" id="rxn-${m.id}">${renderReactions(m.id, m.reactions||{})}</div>
     </div>
-    <div class="msg-actions">${REACTIONS.map(e=>`<button class="rxn-btn" onclick="react(${m.id},'${e}')">${e}</button>`).join('')}</div>
+    <div class="msg-actions">${REACTIONS.map(e=>`<button class="rxn-btn" onclick="react(${m.id},'${e}')" style="background:none;border:none;cursor:pointer;font-size:14px;">${e}</button>`).join('')}</div>
   `;
   box.appendChild(div);
 }
@@ -331,23 +496,74 @@ function appendDateSep(d) {
   const div = document.createElement('div'); div.className = 'date-sep'; div.innerText = formatDate(d);
   box.appendChild(div);
 }
-function formatDate(d) { /* ... */ }
+function formatDate(d) {
+  const today = new Date().toISOString().split('T')[0];
+  if (d === today) return 'Today';
+  const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  if (d === yest) return 'Yesterday';
+  return new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+}
 
-// Modals and UI helpers
+// ======================= MODALS & PROFILE =======================
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-async function saveProfile() { /* ... */ }
-async function createRoom() { /* ... */ }
-function openDM() { const user = document.getElementById('dm-target').value.trim(); if(user) startDM(user); }
-function buildSwatches(sel) { /* ... */ }
-function setAva(id, name, color) { const el=document.getElementById(id); if(el){el.style.background=color; el.innerText=initials(name);} }
+async function saveProfile() {
+  const bio = document.getElementById('prof-bio').value;
+  const color = document.querySelector('.color-swatch.sel')?.dataset.color || myColor;
+  const res = await fetch('/api/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bio,color}) });
+  const data = await res.json();
+  const alertDiv = document.getElementById('prof-alert');
+  alertDiv.innerText = data.ok ? 'Saved!' : data.msg;
+  alertDiv.className = `alert-sm ${data.ok?'ok':'err'}`;
+  alertDiv.style.display = 'block';
+  if (data.ok) { myColor = color; setAva('my-ava',ME,color); setAva('prof-ava',ME,color); }
+  setTimeout(()=>alertDiv.style.display='none', 2000);
+}
+async function createRoom() {
+  const name = document.getElementById('new-room-name').value.trim();
+  const desc = document.getElementById('new-room-desc').value.trim();
+  const res = await fetch('/api/rooms/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,description:desc}) });
+  const data = await res.json();
+  const alertDiv = document.getElementById('room-alert');
+  alertDiv.innerText = data.ok ? `Room "${name}" created!` : data.msg;
+  alertDiv.className = `alert-sm ${data.ok?'ok':'err'}`;
+  alertDiv.style.display = 'block';
+  if (data.ok) { loadRooms(); document.getElementById('new-room-name').value=''; document.getElementById('new-room-desc').value=''; }
+  setTimeout(()=>alertDiv.style.display='none', 2000);
+}
+function openDM() {
+  const user = document.getElementById('dm-target').value.trim();
+  if (!user) return;
+  startDM(user);
+  closeModal('dm-modal');
+}
+function buildSwatches(selectedColor) {
+  const row = document.getElementById('color-swatches');
+  row.innerHTML = COLORS.map(c => `<div class="color-swatch ${c===selectedColor?'sel':''}" style="background:${c}" data-color="${c}" onclick="selColor(this,'${c}')"></div>`).join('');
+}
+function selColor(el, color) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('prof-ava').style.background = color;
+}
+
+// ======================= HELPERS =======================
 function initials(name) { return (name||'?').split(/[\s_]/).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
-function escapeHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function toggleSearch() { document.getElementById('search-panel').classList.toggle('open'); }
-function openSearch() { /* noop */ }
-function onSearch(q) { /* global search */ }
-function roomSearch(q) { /* room search */ }
-function togglePanel() { const p=document.getElementById('right-panel'); p.style.display = p.style.display==='none'?'':'none'; }
+function setAva(id, name, color) {
+  const el = document.getElementById(id);
+  if (el) { el.style.background = color; el.innerText = initials(name); }
+}
+function escapeHtml(s) { return (s||'').replace(/[&<>]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
+function toggleSearch() {
+  const p = document.getElementById('search-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+function onSearch(q) { /* implement global search if needed */ }
+function roomSearch(q) { /* implement room search if needed */ }
+function togglePanel() {
+  const p = document.getElementById('right-panel');
+  p.style.display = p.style.display === 'none' ? '' : 'none';
+}
 </script>
 </body>
 </html>
