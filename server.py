@@ -76,6 +76,23 @@ def admin_panel():
     all_users = get_all_users()
     return render_template('admin.html', users=all_users)
 #---------------------------------------------------------------
+# Get all messages for admin panel
+@app.route('/api/messages/all')
+def api_all_messages():
+    user = require_admin()
+    if not user:
+        return jsonify({'ok': False, 'msg': 'Unauthorized'}), 403
+    limit = request.args.get('limit', 200, type=int)
+    messages = get_all_messages(limit)
+    return jsonify(messages)
+
+# Get bans list
+@app.route('/api/admin/bans')
+def api_bans():
+    user = require_admin()
+    if not user:
+        return jsonify({'ok': False, 'msg': 'Unauthorized'}), 403
+    return jsonify(get_bans())
 
 @app.route('/auth')
 def login_page():
