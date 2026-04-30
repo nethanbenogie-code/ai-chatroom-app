@@ -11,7 +11,9 @@ from database import (
     set_admin, set_badge_manual, ban_user, unban_user, is_user_banned,
     get_bans, delete_message, get_messages_by_user, get_admin_stats,
     create_reset_token, verify_reset_token, reset_password, get_user_by_email_only,
-    get_all_messages
+    get_all_messages,
+    get_ai_response,   # <-- add this
+    get_ai_stats       # <-- add this
 )
 import re
 import secrets
