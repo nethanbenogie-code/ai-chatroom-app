@@ -10,8 +10,8 @@ from database import (
     search_messages, toggle_reaction, get_reactions_for_messages,
     set_admin, set_badge_manual, ban_user, unban_user, is_user_banned,
     get_bans, delete_message, get_messages_by_user, get_admin_stats,
-    create_reset_token, verify_reset_token, reset_password, get_user_by_email_only
-    get_all_messages 
+    create_reset_token, verify_reset_token, reset_password, get_user_by_email_only,
+    get_all_messages
 )
 import re
 import secrets
@@ -58,9 +58,6 @@ def index():
     
     return render_template('app.html', username=session['username'])
 
-
-
-#---------------------------------------------------------------
 # Get all messages for admin panel
 @app.route('/api/messages/all')
 def api_all_messages():
@@ -177,7 +174,6 @@ def save_profile():
 
 @socketio.on('typing')
 def handle_typing(data):
-    # Broadcast to everyone else in the room that this user is typing
     socketio.emit('display_typing', data, room=data['room'], include_self=False)
 
 @socketio.on('stop_typing')
@@ -683,9 +679,5 @@ def _fmt_time(iso_str):
         return ''
 
 if __name__ == '__main__':
-    # Get the port from Render's environment, or use 8080 for local testing
     port = int(os.environ.get("PORT", 8080))
-    
-    # host='0.0.0.0' is required for the app to be reachable on the web
-    # allow_unsafe_werkzeug must be False in production
     socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=False)
