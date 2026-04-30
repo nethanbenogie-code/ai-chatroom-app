@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from database import (
+from flask import send_from_directory
     init_db, create_user, get_user, get_user_by_email,
     update_last_seen, update_profile, increment_message_count,
     get_all_users, get_all_users_full, get_rooms, create_room, delete_room,
