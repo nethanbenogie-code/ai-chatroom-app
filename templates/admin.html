@@ -23,10 +23,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .admin-header h1 {
             font-size: 24px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
         }
 
         .btn {
@@ -35,9 +42,22 @@
             border: none;
             cursor: pointer;
             text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
             background: white;
             color: #6C63FF;
-            font-weight: 500;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
         }
 
         .stats-grid {
@@ -58,16 +78,51 @@
         .stat-value {
             font-size: 32px;
             font-weight: 700;
-            margin-bottom: 4px;
         }
 
         .stat-label {
             color: rgba(238,238,243,0.5);
             font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: rgba(238,238,243,0.6);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab:hover {
+            color: white;
+        }
+
+        .tab.active {
+            color: #6C63FF;
+            border-bottom-color: #6C63FF;
         }
 
         .panel {
+            display: none;
             padding: 30px;
+        }
+
+        .panel.active {
+            display: block;
         }
 
         .table-container {
@@ -105,13 +160,29 @@
             color: #6C63FF;
         }
 
+        .badge-banned {
+            background: rgba(230,57,70,0.2);
+            color: #E63946;
+        }
+
         .action-btn {
             padding: 4px 10px;
             border-radius: 6px;
             border: none;
             cursor: pointer;
             font-size: 11px;
-            margin-right: 5px;
+            font-weight: 500;
+            margin: 0 2px;
+        }
+
+        .action-btn.delete {
+            background: rgba(230,57,70,0.2);
+            color: #E63946;
+        }
+
+        .action-btn.promote {
+            background: rgba(108,99,255,0.2);
+            color: #6C63FF;
         }
 
         .action-btn.ban {
@@ -119,193 +190,297 @@
             color: #E63946;
         }
 
-        .error-msg {
-            background: rgba(230,57,70,0.15);
-            border: 1px solid rgba(230,57,70,0.3);
-            color: #ff8a8f;
-            padding: 15px;
+        .action-btn.unban {
+            background: rgba(67,185,127,0.2);
+            color: #43B97F;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input, .search-bar select {
+            padding: 10px 14px;
+            background: #1a1a24;
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 10px;
-            margin: 20px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .search-bar input {
+            flex: 1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #43B97F;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
         }
     </style>
 </head>
 <body>
     <div class="admin-header">
         <h1>ChatFlow Admin Panel</h1>
-        <a href="/" class="btn">← Back to Chat</a>
-    </div>
-
-    <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-            <div class="stat-value" id="totalUsers">-</div>
-            <div class="stat-label">Total Users</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="totalMessages">-</div>
-            <div class="stat-label">Total Messages</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="totalRooms">-</div>
-            <div class="stat-label">Total Rooms</div>
+        <div class="header-buttons">
+            <button class="btn btn-outline" onclick="refreshAll()">⟳ Refresh</button>
+            <a href="/" class="btn btn-primary">← Back to Chat</a>
         </div>
     </div>
 
-    <div class="panel">
-        <h2>Users</h2>
-        <div id="usersError" class="error-msg" style="display:none;"></div>
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="totalUsers">-</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalMessages">-</div><div class="stat-label">Total Messages</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalRooms">-</div><div class="stat-label">Total Rooms</div></div>
+        <div class="stat-card"><div class="stat-value" id="bannedUsers">-</div><div class="stat-label">Banned Users</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-tab="users">👥 Users</button>
+        <button class="tab" data-tab="rooms">🏠 Rooms</button>
+        <button class="tab" data-tab="bans">🚫 Bans</button>
+    </div>
+
+    <!-- Users Panel -->
+    <div id="usersPanel" class="panel active">
+        <div class="search-bar">
+            <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()">
+        </div>
         <div class="table-container">
             <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Badge</th>
-                        <th>Messages</th>
-                        <th>Admin</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersList">
-                    <tr>
-                        <td colspan="6" style="text-align:center;">Loading users...</td>
-                    </tr>
-                </tbody>
+                <thead><tr><th>Username</th><th>Email</th><th>Badge</th><th>Messages</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="usersList"><tr><td colspan="6">Loading users...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Rooms Panel -->
+    <div id="roomsPanel" class="panel">
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Room Name</th><th>Description</th><th>Created By</th><th>Created At</th><th>Type</th><th>Action</th></tr></thead>
+                <tbody id="roomsList"><tr><td colspan="6">Loading rooms...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bans Panel -->
+    <div id="bansPanel" class="panel">
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Username</th><th>Banned By</th><th>Reason</th><th>Banned At</th><th>Expires</th><th>Action</th></tr></thead>
+                <tbody id="bansList"><tr><td colspan="6">Loading bans...</td></tr></tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${tabId}Panel`).classList.add('active');
+                if (tabId === 'rooms') loadRooms();
+                if (tabId === 'bans') loadBans();
+            });
+        });
+
+        async function refreshAll() {
+            await loadStats();
+            await loadUsers();
+            if (document.getElementById('roomsPanel').classList.contains('active')) loadRooms();
+            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
+            showToast('Data refreshed');
+        }
+
         async function loadStats() {
             try {
                 const res = await fetch('/api/admin/stats');
                 if (res.ok) {
                     const stats = await res.json();
-                    document.getElementById('totalUsers').textContent = stats.total_users || 0;
-                    document.getElementById('totalMessages').textContent = stats.total_messages || 0;
-                    document.getElementById('totalRooms').textContent = stats.total_rooms || 0;
+                    document.getElementById('totalUsers').innerText = stats.total_users || 0;
+                    document.getElementById('totalMessages').innerText = stats.total_messages || 0;
+                    document.getElementById('totalRooms').innerText = stats.total_rooms || 0;
+                    document.getElementById('bannedUsers').innerText = stats.banned_users || 0;
                 }
+            } catch(e) { console.error(e); }
+        }
+
+        // ========== USERS ==========
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users');
+                if (!res.ok) throw new Error('Failed');
+                const users = await res.json();
+                window.allUsers = users;
+                renderUsers(users);
             } catch(e) {
-                console.error('Stats error:', e);
+                document.getElementById('usersList').innerHTML = '<tr><td colspan="6">Error loading users. Are you admin?</td></tr>';
             }
         }
 
-        async function loadUsers() {
-            try {
-                console.log('Loading users...');
-                const res = await fetch('/api/admin/users');
-                
-                if (!res.ok) {
-                    const errorDiv = document.getElementById('usersError');
-                    errorDiv.style.display = 'block';
-                    errorDiv.textContent = `Error ${res.status}: ${res.statusText}. Make sure you are logged in as admin.`;
-                    document.getElementById('usersList').innerHTML = '<tr><td colspan="6" style="text-align:center;">Failed to load users</td></tr>';
-                    return;
-                }
-                
-                const users = await res.json();
-                console.log('Users loaded:', users);
-                
-                if (!users || users.length === 0) {
-                    document.getElementById('usersList').innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found</td></tr>';
-                    return;
-                }
-                
-                const tbody = document.getElementById('usersList');
-                tbody.innerHTML = users.map(u => `
-                    <tr>
-                        <td><strong>${escapeHtml(u.username)}</strong></td>
-                        <td>${escapeHtml(u.email || '-')}</td>
-                        <td><span class="badge">${u.badge || 'Member'}</span></td>
-                        <td>${u.message_count || 0}</td>
-                        <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : '-'}</td>
-                        <td>
-                            ${!u.is_admin ? `<button class="action-btn" onclick="makeAdmin('${u.username}')">Make Admin</button>` : ''}
-                            ${!u.is_banned ? `<button class="action-btn ban" onclick="banUser('${u.username}')">Ban</button>` : `<button class="action-btn" onclick="unbanUser('${u.username}')">Unban</button>`}
-                        </td>
-                    </tr>
-                `).join('');
-            } catch(e) {
-                console.error('Users error:', e);
-                document.getElementById('usersList').innerHTML = '<tr><td colspan="6" style="text-align:center;">Error loading users. Check console.</td></tr>';
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersList');
+            if (!users.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td><strong>${escapeHtml(u.username)}</strong></td>
+                    <td>${escapeHtml(u.email || '-')}</td>
+                    <td><span class="badge">${u.badge || 'Member'}</span></td>
+                    <td>${u.message_count || 0}</td>
+                    <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''} ${u.is_banned ? '<span class="badge badge-banned">Banned</span>' : ''}</td>
+                    <td>
+                        ${!u.is_admin ? `<button class="action-btn promote" onclick="makeAdmin('${u.username}')">Make Admin</button>` : ''}
+                        ${!u.is_banned ? `<button class="action-btn ban" onclick="banUser('${u.username}')">Ban</button>` : `<button class="action-btn unban" onclick="unbanUser('${u.username}')">Unban</button>`}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterUsers() {
+            const term = document.getElementById('userSearch').value.toLowerCase();
+            if (window.allUsers) {
+                const filtered = window.allUsers.filter(u => u.username.toLowerCase().includes(term) || (u.email && u.email.toLowerCase().includes(term)));
+                renderUsers(filtered);
             }
         }
 
         async function makeAdmin(username) {
-            if (!confirm(`Make ${username} an admin?`)) return;
-            try {
-                const res = await fetch('/api/admin/set_admin', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, is_admin: true})
-                });
-                if (res.ok) {
-                    alert(`${username} is now an admin!`);
-                    loadUsers();
-                } else {
-                    alert('Failed to make admin');
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
-            }
+            if (!confirm(`Make ${username} admin?`)) return;
+            await fetch('/api/admin/set_admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username, is_admin: true}) });
+            showToast(`${username} is now admin`);
+            loadUsers();
         }
 
         async function banUser(username) {
-            const reason = prompt('Reason for ban:', 'Violation of rules');
+            const reason = prompt('Reason for ban:', 'Violation');
             if (!reason) return;
-            try {
-                const res = await fetch('/api/admin/ban', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, reason})
-                });
-                if (res.ok) {
-                    alert(`${username} banned`);
-                    loadUsers();
-                    loadStats();
-                } else {
-                    alert('Failed to ban user');
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
-            }
+            await fetch('/api/admin/ban', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username, reason}) });
+            showToast(`${username} banned`);
+            loadUsers(); loadStats();
+            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
         }
 
         async function unbanUser(username) {
             if (!confirm(`Unban ${username}?`)) return;
+            await fetch('/api/admin/unban', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username}) });
+            showToast(`${username} unbanned`);
+            loadUsers(); loadStats();
+            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
+        }
+
+        // ========== ROOMS ==========
+        async function loadRooms() {
             try {
-                const res = await fetch('/api/admin/unban', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username})
-                });
-                if (res.ok) {
-                    alert(`${username} unbanned`);
-                    loadUsers();
-                    loadStats();
-                } else {
-                    alert('Failed to unban user');
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
+                const res = await fetch('/api/rooms');
+                const rooms = await res.json();
+                renderRooms(rooms);
+            } catch(e) { console.error(e); }
+        }
+
+        function renderRooms(rooms) {
+            const tbody = document.getElementById('roomsList');
+            if (!rooms.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No rooms found</td></tr>';
+                return;
             }
+            tbody.innerHTML = rooms.map(r => `
+                <tr>
+                    <td><strong>#${escapeHtml(r.name)}</strong></td>
+                    <td>${escapeHtml(r.description || '-')}</td>
+                    <td>${escapeHtml(r.created_by || 'system')}</td>
+                    <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
+                    <td>${r.is_default ? 'Default' : 'Custom'}</td>
+                    <td>${!r.is_default ? `<button class="action-btn delete" onclick="deleteRoom('${r.name}')">Delete Room</button>` : '—'}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteRoom(roomName) {
+            if (!confirm(`Delete room "${roomName}" and all its messages?`)) return;
+            const res = await fetch('/api/admin/delete_room', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({room_name: roomName}) });
+            const data = await res.json();
+            if (data.ok) {
+                showToast(`Room "${roomName}" deleted`);
+                loadRooms();
+                loadStats();
+            } else {
+                showToast(data.msg || 'Failed', 'error');
+            }
+        }
+
+        // ========== BANS ==========
+        async function loadBans() {
+            try {
+                const res = await fetch('/api/admin/bans');
+                if (!res.ok) throw new Error();
+                const bans = await res.json();
+                renderBans(bans);
+            } catch(e) {
+                // Fallback: if endpoint missing, show message
+                document.getElementById('bansList').innerHTML = '<tr><td colspan="6">No bans endpoint or no bans</td></tr>';
+            }
+        }
+
+        function renderBans(bans) {
+            const tbody = document.getElementById('bansList');
+            if (!bans.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No bans</td></tr>';
+                return;
+            }
+            tbody.innerHTML = bans.map(b => `
+                <tr>
+                    <td><strong>${escapeHtml(b.username)}</strong></td>
+                    <td>${escapeHtml(b.banned_by || 'System')}</td>
+                    <td>${escapeHtml(b.reason || 'No reason')}</td>
+                    <td>${b.banned_at ? new Date(b.banned_at).toLocaleString() : '-'}</td>
+                    <td>${b.expires_at ? new Date(b.expires_at).toLocaleString() : 'Permanent'}</td>
+                    <td><button class="action-btn unban" onclick="unbanUser('${b.username}')">Unban</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            if (type === 'error') toast.style.background = '#E63946';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
+            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
         }
 
-        // Load data on page load
+        // Initial load
         loadStats();
         loadUsers();
-        // Refresh every 10 seconds
-        setInterval(loadStats, 10000);
-        setInterval(loadUsers, 10000);
+        loadRooms();   // preload rooms in background
+        loadBans();    // preload bans
     </script>
 </body>
 </html>
