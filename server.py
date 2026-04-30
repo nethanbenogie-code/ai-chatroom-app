@@ -218,6 +218,30 @@ def api_me():
     if user:
         user = {k: v for k, v in user.items() if k not in ['password_hash']}
     return jsonify(user or {})
+
+# --- Add this new AI Assistant route ---
+@app.route('/api/ai', methods=['POST'])
+def ai_assistant():
+    if 'username' not in session:
+        return jsonify({'ok': False, 'msg': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    if not data or 'prompt' not in data:
+        return jsonify({'ok': False, 'msg': 'Missing prompt'}), 400
+        
+    prompt = data.get('prompt', '').strip()
+    if not prompt:
+        return jsonify({'ok': False, 'msg': 'Prompt cannot be empty'}), 400
+
+    username = session['username']
+    response = get_ai_response(prompt, username) # Call the AI function
+    
+    return jsonify({
+        'ok': True,
+        'response': response,
+        'prompt': prompt
+    })
+
 # ------Manifest.json----------------------------------------
 @app.route('/static/<path:filename>')
 def serve_static(filename):
