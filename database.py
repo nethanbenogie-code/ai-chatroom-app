@@ -293,6 +293,16 @@ def get_all_messages(limit=200):
     conn.close()
     return [dict(r) for r in rows]
 
+# ---------Ai help----------------
+def get_ai_response(prompt, username):
+    """Generate a simple mock AI response for testing."""
+    # A simple response for testing
+    return f"🤖 **AI Echo:** You said: '{prompt}'\n\nI'm currently in setup mode. Your real AI assistant will be connected soon!"
+
+def get_ai_stats():
+    """Get AI usage statistics."""
+    # Placeholder for stats
+    return 0
 # ── Room Operations ──────────────────────────────────────
 def get_rooms():
     conn = get_db()
