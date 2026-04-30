@@ -83,14 +83,70 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .online-dot.on{background:var(--online);}
 .ai-response{background:linear-gradient(135deg, rgba(108,99,255,0.1), rgba(108,99,255,0.05));border-radius:12px;padding:12px;margin-top:5px;}
 .ai-response strong{color:#6C63FF;}
-@media (max-width: 768px){
-  .mobile-menu-btn,.mobile-panel-btn{display:block;}
-  #sidebar{position:fixed;left:-280px;top:0;bottom:0;z-index:1000;transition:left 0.3s;width:280px;}
-  #sidebar.open{left:0;}
-  #right-panel{position:fixed;right:-280px;top:0;bottom:0;z-index:1000;transition:right 0.3s;width:280px;}
-  #right-panel.open{right:0;}
-  #main{width:100%;}
-  #chat-header{padding-left:55px;padding-right:55px;}
+@media (max-width: 768px) {
+  .mobile-menu-btn,
+  .mobile-panel-btn {
+    display: block;
+  }
+
+  /* Sidebar sliding */
+  #sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
+    width: 280px;
+    background: var(--surface);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  }
+
+  #sidebar.open {
+    left: 0;
+  }
+
+  /* Right panel sliding */
+  #right-panel {
+    position: fixed;
+    right: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: right 0.3s ease-in-out;
+    width: 280px;
+    background: var(--surface);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  }
+
+  #right-panel.open {
+    right: 0;
+  }
+
+  /* Overlay background when sidebar is open (optional) */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  #main {
+    width: 100%;
+  }
+
+  #chat-header {
+    padding-left: 55px;
+    padding-right: 55px;
+  }
 }
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:center;justify-content:center;}
 .overlay.open{display:flex;}
@@ -106,7 +162,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 </style>
 </head>
 <body>
-
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeAllSidebars()"></div>
 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
 <button class="mobile-panel-btn" onclick="toggleMobilePanel()">👥</button>
 
