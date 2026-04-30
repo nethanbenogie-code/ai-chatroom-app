@@ -277,6 +277,22 @@ def get_messages_by_user(username, limit=50):
     conn.close()
     return [dict(r) for r in rows]
 
+# ── NEW: Get all messages for admin panel ──
+def get_all_messages(limit=200):
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        SELECT id, room, username, text, sent_at 
+        FROM messages 
+        WHERE is_dm = 0 
+        ORDER BY sent_at DESC 
+        LIMIT %s
+    """, (limit,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [dict(r) for r in rows]
+
 # ── Room Operations ──────────────────────────────────────
 def get_rooms():
     conn = get_db()
@@ -423,9 +439,11 @@ def get_reactions_for_messages(message_ids):
         return {}
     conn = get_db()
     cur = conn.cursor()
+    # PostgreSQL requires explicit tuple formatting
+    placeholders = ','.join(['%s'] * len(message_ids))
     cur.execute(
-        "SELECT message_id, emoji, COUNT(*) as cnt FROM reactions WHERE message_id IN %s GROUP BY message_id, emoji",
-        (tuple(message_ids),)
+        f"SELECT message_id, emoji, COUNT(*) as cnt FROM reactions WHERE message_id IN ({placeholders}) GROUP BY message_id, emoji",
+        tuple(message_ids)
     )
     rows = cur.fetchall()
     cur.close()
