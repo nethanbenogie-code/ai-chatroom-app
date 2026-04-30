@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>ChatFlow</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<!-- PWA Support -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#6C63FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChatFlow">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Space+Grotesk:wght@500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -18,6 +24,39 @@
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
      height:100vh;display:flex;overflow:hidden;}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1001;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.mobile-panel-btn {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1001;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
 
 /* ── Sidebar ── */
 #sidebar{width:260px;flex-shrink:0;background:var(--surface);
@@ -83,7 +122,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
 .msg-wrap:hover .msg-actions{opacity:1;}
 .msg-wrap .ava{flex-shrink:0;margin-top:2px;}
 .msg-main{flex:1;min-width:0;}
-.msg-header{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
+.msg-header{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;flex-wrap:wrap;}
 .msg-user{font-size:13px;font-weight:600;}
 .msg-time{font-size:11px;color:var(--muted);}
 .badge{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:500;}
@@ -166,6 +205,113 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
 .ava.sm{width:28px;height:28px;font-size:11px;}
 .ava.lg{width:48px;height:48px;font-size:16px;}
 
+/* ── AI Response Styling ── */
+.ai-response {
+    background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(108,99,255,0.05));
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 5px;
+}
+.ai-response strong {
+    color: #6C63FF;
+}
+.ai-response code {
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+}
+.ai-response pre {
+    background: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+.ai-response pre code {
+    background: none;
+    padding: 0;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+    .mobile-menu-btn, .mobile-panel-btn {
+        display: block;
+    }
+    
+    #sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        width: 280px;
+    }
+    
+    #sidebar.open {
+        left: 0;
+    }
+    
+    #right-panel {
+        position: fixed;
+        right: -280px;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        transition: right 0.3s ease;
+        width: 280px;
+    }
+    
+    #right-panel.open {
+        right: 0;
+    }
+    
+    #main {
+        width: 100%;
+    }
+    
+    #chat-header {
+        padding-left: 55px;
+        padding-right: 55px;
+    }
+    
+    .msg-text {
+        font-size: 14px;
+    }
+    
+    .msg-user {
+        font-size: 12px;
+    }
+    
+    #input-row {
+        padding: 8px 12px;
+    }
+    
+    #msg-input {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .msg-wrap .ava {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+    }
+    
+    .header-desc {
+        display: none;
+    }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    .mobile-menu-btn, .mobile-panel-btn {
+        display: none;
+    }
+}
+
 /* ── Modals ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;
          display:none;align-items:center;justify-content:center;}
@@ -217,6 +363,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
 </style>
 </head>
 <body>
+
+<!-- Mobile Menu Buttons -->
+<button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+<button class="mobile-panel-btn" onclick="toggleMobilePanel()">👥</button>
 
 <!-- ── Sidebar ── -->
 <div id="sidebar">
@@ -274,7 +424,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
   <div id="messages"></div>
   <div id="typing-bar"></div>
   <div id="input-row">
-    <textarea id="msg-input" rows="1" placeholder="Message #General..." maxlength="1000"
+    <textarea id="msg-input" rows="1" placeholder="Message #General... (type /ai for AI help)" maxlength="1000"
       onkeydown="onKey(event)" oninput="onInputChange(this)"></textarea>
     <button id="send-btn" onclick="sendMsg()">
       <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
@@ -288,7 +438,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
   <div class="rp-body" id="member-list"></div>
 </div>
 
-<!-- ── Modals ── -->
+<!-- ── Modals (same as before) ── -->
 
 <!-- Profile -->
 <div class="overlay" id="profile-modal">
@@ -359,7 +509,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
 const ME = "{{ username }}";
 const socket = io();
 let currentRoom = 'General';
-let currentDM = null; // username if in DM
+let currentDM = null;
 let myColor = '#6C63FF';
 let myBadge = 'Member';
 let rooms = [];
@@ -369,13 +519,47 @@ let typingTimer;
 const COLORS = ['#6C63FF','#FF6584','#43B97F','#F4A261','#2A9D8F','#E76F51','#457B9D','#E63946','#9C6ADE','#00BFA5','#FF7043','#5C6BC0'];
 const REACTIONS = ['👍','❤️','😂','😮','😢','🔥'];
 
+// Mobile Functions
+function toggleMobileSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+function toggleMobilePanel() {
+    document.getElementById('right-panel').classList.toggle('open');
+}
+
+// Close mobile panels when clicking outside
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const panel = document.getElementById('right-panel');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    const panelBtn = document.querySelector('.mobile-panel-btn');
+    
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+    }
+    if (panel.classList.contains('open') && !panel.contains(e.target) && !panelBtn.contains(e.target)) {
+        panel.classList.remove('open');
+    }
+});
+
 // ── Init ──────────────────────────────────────────────
 window.addEventListener('load', async () => {
   await loadMe();
   await loadRooms();
   await loadMembers();
   socket.emit('join_room_req', { room: 'General' });
+  registerServiceWorker();
 });
+
+// Register Service Worker for PWA
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js')
+            .then(reg => console.log('Service Worker registered', reg))
+            .catch(err => console.log('Service Worker failed', err));
+    }
+}
 
 async function loadMe() {
   const res = await fetch('/api/me');
@@ -405,338 +589,4 @@ async function loadMembers() {
   const members = await res.json();
   const list = document.getElementById('member-list');
   list.innerHTML = members.map(m => `
-    <div class="member-row" onclick="startDM('${m.username}')">
-      <div class="ava sm" style="background:${m.avatar_color||'#6C63FF'};color:#fff">${initials(m.username)}</div>
-      <div class="info">
-        <div class="mname">${m.username}</div>
-        <div class="mbadge">${m.badge} · ${m.message_count} msgs</div>
-      </div>
-      <div class="online-dot ${onlineUsers.has(m.username)?'on':''}"></div>
-    </div>`).join('');
-}
-
-function renderRooms() {
-  const list = document.getElementById('room-list');
-  list.innerHTML = rooms.map(r => `
-    <div class="room-item ${r.name===currentRoom&&!currentDM?'active':''}" onclick="switchRoom('${r.name}','${r.description||''}')">
-      <span class="hash">#</span> ${r.name}
-      <span class="cnt" id="cnt-${r.name.replace(/\s/g,'_')}">0</span>
-    </div>`).join('');
-}
-
-// ── Socket handlers ───────────────────────────────────
-socket.on('history', data => {
-  const box = document.getElementById('messages');
-  box.innerHTML = '';
-  let lastDate = '';
-  data.messages.forEach(m => {
-    const d = (m.sent_at||'').split('T')[0];
-    if (d && d !== lastDate) { appendDateSep(d); lastDate = d; }
-    appendMsg(m);
-  });
-  box.scrollTop = box.scrollHeight;
-});
-
-socket.on('new_message', msg => {
-  appendMsg(msg);
-  const box = document.getElementById('messages');
-  box.scrollTop = box.scrollHeight;
-});
-
-socket.on('dm_history', data => {
-  const box = document.getElementById('messages');
-  box.innerHTML = '';
-  data.messages.forEach(m => appendMsg(m, true));
-  box.scrollTop = box.scrollHeight;
-});
-
-socket.on('dm_message', msg => {
-  if (currentDM && (msg.username === currentDM || msg.to === currentDM)) {
-    appendMsg(msg, true);
-    const box = document.getElementById('messages');
-    box.scrollTop = box.scrollHeight;
-  }
-  // Add to DM list if new
-  const other = msg.username === ME ? msg.to : msg.username;
-  if (!dmList.includes(other)) { dmList.push(other); renderDMList(); }
-});
-
-socket.on('room_presence', data => {
-  onlineUsers = new Set(data.users || []);
-  document.getElementById('online-pill').textContent = `${data.count} online`;
-  const key = data.room.replace(/\s/g,'_');
-  const el = document.getElementById(`cnt-${key}`);
-  if (el) el.textContent = data.count;
-  loadMembers(); // refresh online dots
-});
-
-socket.on('room_switched', data => { currentRoom = data.room; });
-
-socket.on('new_room', data => { loadRooms(); });
-
-socket.on('reaction_update', data => {
-  const rxnEl = document.getElementById(`rxn-${data.message_id}`);
-  if (rxnEl) rxnEl.innerHTML = renderReactions(data.message_id, data.reactions);
-});
-
-socket.on('user_typing', data => {
-  const el = document.getElementById('typing-bar');
-  el.textContent = `${data.username} is typing...`;
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => el.textContent = '', 2000);
-});
-
-// ── Messaging ─────────────────────────────────────────
-function sendMsg() {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text) return;
-  if (currentDM) {
-    socket.emit('send_dm', { to: currentDM, text });
-  } else {
-    socket.emit('send_message', { text });
-  }
-  input.value = '';
-  input.style.height = 'auto';
-}
-
-function onKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); return; }
-  socket.emit('typing');
-}
-
-function onInputChange(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-if (msg.text.match(/\.(jpeg|jpg|gif|png)$/) != null) {
-    messageElement.innerHTML = `<img src="${msg.text}" style="max-width: 200px; border-radius: 10px;">`;
-}  
-
-// ── Room switching ────────────────────────────────────
-function switchRoom(name, desc) {
-  currentDM = null;
-  currentRoom = name;
-  document.getElementById('header-hash').textContent = '#';
-  document.getElementById('header-title').textContent = name;
-  document.getElementById('header-desc').textContent = desc ? `· ${desc}` : '';
-  document.getElementById('msg-input').placeholder = `Message #${name}...`;
-  document.getElementById('messages').innerHTML = '';
-  renderRooms();
-  renderDMList();
-  socket.emit('switch_room', { room: name });
-}
-
-function startDM(user) {
-  if (user === ME) return;
-  currentDM = user;
-  currentRoom = null;
-  document.getElementById('header-hash').textContent = '✉';
-  document.getElementById('header-title').textContent = user;
-  document.getElementById('header-desc').textContent = '· Direct Message';
-  document.getElementById('msg-input').placeholder = `Message ${user}...`;
-  document.getElementById('messages').innerHTML = '';
-  if (!dmList.includes(user)) { dmList.push(user); renderDMList(); }
-  renderRooms();
-  renderDMList();
-  socket.emit('load_dm', { user });
-  closeModal('dm-modal');
-}
-
-function renderDMList() {
-  const list = document.getElementById('dm-list');
-  list.innerHTML = dmList.map(u => `
-    <div class="room-item dm-item ${currentDM===u?'active':''}" onclick="startDM('${u}')">
-      <span class="hash">@</span> ${u}
-    </div>`).join('');
-}
-
-// ── Message rendering ─────────────────────────────────
-function appendMsg(m, isDM) {
-  const box = document.getElementById('messages');
-  const isMine = m.username === ME;
-  const div = document.createElement('div');
-  div.className = `msg-wrap ${isMine?'mine':''}`;
-  div.innerHTML = `
-    <div class="ava" style="background:${m.avatar_color||m.color||'#6C63FF'};color:#fff">${initials(m.username)}</div>
-    <div class="msg-main">
-      <div class="msg-header">
-        <span class="msg-user" style="color:${m.avatar_color||m.color||'#6C63FF'}">${m.username}</span>
-        <span class="badge ${m.badge||'Member'}">${m.badge||'Member'}</span>
-        <span class="msg-time">${m.time||''}</span>
-      </div>
-      <div class="msg-text">${escHtml(m.text)}</div>
-      <div class="msg-reactions" id="rxn-${m.id}">${renderReactions(m.id, m.reactions||{})}</div>
-    </div>
-    <div class="msg-actions">
-      ${REACTIONS.map(e=>`<button class="rxn-btn" onclick="react(${m.id},'${e}')" title="${e}">${e}</button>`).join('')}
-    </div>`;
-  box.appendChild(div);
-}
-
-function renderReactions(msgId, rxns) {
-  return Object.entries(rxns).filter(([,c])=>c>0).map(([e,c])=>
-    `<span class="rxn-badge" onclick="react(${msgId},'${e}')">${e}<span>${c}</span></span>`
-  ).join('');
-}
-
-function appendDateSep(d) {
-  const box = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'date-sep';
-  div.textContent = formatDate(d);
-  box.appendChild(div);
-}
-
-function appendSystem(text) {
-  const box = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'system-line';
-  div.textContent = text;
-  box.appendChild(div);
-}
-
-function react(msgId, emoji) {
-  socket.emit('react', { message_id: msgId, emoji });
-}
-
-// ── Modals ────────────────────────────────────────────
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  document.querySelectorAll('.alert-sm').forEach(a=>a.style.display='none');
-}
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
-  if(e.target===o) o.classList.remove('open');
-}));
-
-async function saveProfile() {
-  const bio = document.getElementById('prof-bio').value;
-  const color = document.querySelector('.color-swatch.sel')?.dataset.color || myColor;
-  const res = await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bio,color})});
-  const d = await res.json();
-  const a = document.getElementById('prof-alert');
-  a.textContent = d.ok ? 'Saved!' : d.msg;
-  a.className = `alert-sm ${d.ok?'ok':'err'}`;
-  a.style.display='block';
-  if (d.ok) { myColor=color; setAva('my-ava',ME,color); setAva('prof-ava',ME,color); }
-}
-
-async function createRoom() {
-  const name = document.getElementById('new-room-name').value.trim();
-  const desc = document.getElementById('new-room-desc').value.trim();
-  const res = await fetch('/api/rooms/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
-  const d = await res.json();
-  const a = document.getElementById('room-alert');
-  a.textContent = d.ok ? `Room "${name}" created!` : d.msg;
-  a.className = `alert-sm ${d.ok?'ok':'err'}`;
-  a.style.display='block';
-  if (d.ok) { loadRooms(); document.getElementById('new-room-name').value=''; document.getElementById('new-room-desc').value=''; }
-}
-
-function openDM() {
-  const user = document.getElementById('dm-target').value.trim();
-  if (!user) return;
-  startDM(user);
-}
-
-// ── Search ────────────────────────────────────────────
-let searchTimer;
-function toggleSearch() {
-  const p = document.getElementById('search-panel');
-  p.classList.toggle('open');
-  if (p.classList.contains('open')) document.getElementById('search-input').focus();
-}
-function openSearch() {
-  // handled by global search
-}
-function onSearch(q) {
-  clearTimeout(searchTimer);
-  if (!q || q.length < 2) { document.getElementById('search-results').innerHTML=''; return; }
-  searchTimer = setTimeout(()=>globalSearch(q), 400);
-}
-async function globalSearch(q) {
-  const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-  const results = await res.json();
-  renderSearchResults(results, 'search-results');
-}
-async function roomSearch(q) {
-  if (!q || q.length < 2) { document.getElementById('search-results').innerHTML=''; return; }
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async()=>{
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&room=${encodeURIComponent(currentRoom||'')}`);
-    const results = await res.json();
-    renderSearchResults(results,'search-results');
-  },400);
-}
-function renderSearchResults(results, containerId) {
-  const el = document.getElementById(containerId);
-  if (!results.length) { el.innerHTML='<div class="no-results">No results found</div>'; return; }
-  el.innerHTML = results.map(r=>`
-    <div class="search-result">
-      <div class="sr-room">#${r.room}</div>
-      <div class="sr-user">${r.username}</div>
-      <div class="sr-text">${escHtml(r.text.slice(0,80))}</div>
-      <div class="sr-time">${(r.sent_at||'').split('T')[0]}</div>
-    </div>`).join('');
-}
-
-// ── Right panel toggle ────────────────────────────────
-let panelOpen = true;
-function togglePanel() {
-  const p = document.getElementById('right-panel');
-  panelOpen = !panelOpen;
-  p.style.display = panelOpen ? '' : 'none';
-}
-
-// ── Color swatches ────────────────────────────────────
-function buildSwatches(selectedColor) {
-  const row = document.getElementById('color-swatches');
-  row.innerHTML = COLORS.map(c=>
-    `<div class="color-swatch ${c===selectedColor?'sel':''}" style="background:${c}" data-color="${c}" onclick="selColor(this,'${c}')"></div>`
-  ).join('');
-}
-function selColor(el, color) {
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('prof-ava').style.background = color;
-}
-
-// ── Helpers ───────────────────────────────────────────
-function initials(name) {
-  return (name||'?').split(/[\s_]/).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';
-}
-function setAva(id, name, color) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.background = color;
-  el.style.color = '#fff';
-  el.textContent = initials(name);
-}
-function escHtml(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function formatDate(d) {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    if (d === today) return 'Today';
-    const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
-    if (d === yest) return 'Yesterday';
-    return new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-  } catch { return d; }
-}
-
-// Close search panel on outside click
-document.addEventListener('click', e => {
-  const sp = document.getElementById('search-panel');
-  const header = document.getElementById('chat-header');
-  if (sp.classList.contains('open') && !sp.contains(e.target) && !header.contains(e.target)) {
-    sp.classList.remove('open');
-  }
-});
-</script>
-</body>
-</html>
+    <div class="member-row" onclick="startDM('${m.username}
