@@ -2,485 +2,321 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>ChatFlow Admin Panel</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0c0c12;
-            color: #eeeef3;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0c0c12; color: #eeeef3; }
 
         .admin-header {
             background: linear-gradient(135deg, #6C63FF, #4a42c4);
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            padding: 16px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 12px;
         }
-
-        .admin-header h1 {
-            font-size: 24px;
-        }
-
-        .header-buttons {
-            display: flex;
-            gap: 12px;
-        }
+        .admin-header h1 { font-size: 20px; }
+        .header-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 
         .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer;
+            text-decoration: none; font-weight: 500; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+            min-height: 44px; font-size: 14px;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
         }
-
-        .btn-primary {
-            background: white;
-            color: #6C63FF;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-        }
+        .btn-primary { background: white; color: #6C63FF; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 30px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px; padding: 20px;
         }
+        .stat-card { background: #14141c; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 16px; text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-label { color: rgba(238,238,243,0.5); font-size: 12px; margin-top: 4px; }
 
-        .stat-card {
-            background: #14141c;
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        .stat-label {
-            color: rgba(238,238,243,0.5);
-            font-size: 13px;
-            margin-top: 5px;
-        }
-
+        /* Tabs — scrollable on mobile */
         .tabs {
-            display: flex;
-            gap: 4px;
-            padding: 0 30px;
+            display: flex; gap: 4px;
+            padding: 0 16px;
             border-bottom: 1px solid rgba(255,255,255,0.07);
-            flex-wrap: wrap;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
         }
-
+        .tabs::-webkit-scrollbar { display: none; }
         .tab {
-            padding: 12px 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: rgba(238,238,243,0.6);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            border-bottom: 2px solid transparent;
+            padding: 12px 20px; cursor: pointer; background: none; border: none;
+            color: rgba(238,238,243,0.6); font-family: inherit; font-size: 14px; font-weight: 500;
+            transition: all 0.2s; border-bottom: 2px solid transparent;
+            white-space: nowrap; min-height: 44px;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
         }
+        .tab:hover { color: white; }
+        .tab.active { color: #6C63FF; border-bottom-color: #6C63FF; }
 
-        .tab:hover {
-            color: white;
-        }
+        .panel { display: none; padding: 20px; }
+        .panel.active { display: block; }
 
-        .tab.active {
-            color: #6C63FF;
-            border-bottom-color: #6C63FF;
-        }
+        .table-container { background: #14141c; border-radius: 16px; overflow-x: auto; margin-top: 16px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        th { background: #1a1a24; font-weight: 600; }
 
-        .panel {
-            display: none;
-            padding: 30px;
-        }
-
-        .panel.active {
-            display: block;
-        }
-
-        .table-container {
-            background: #14141c;
-            border-radius: 16px;
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        th {
-            background: #1a1a24;
-            font-weight: 600;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-        }
-
-        .badge-admin {
-            background: rgba(108,99,255,0.2);
-            color: #6C63FF;
-        }
-
-        .badge-banned {
-            background: rgba(230,57,70,0.2);
-            color: #E63946;
-        }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+        .badge-admin { background: rgba(108,99,255,0.2); color: #6C63FF; }
+        .badge-banned { background: rgba(230,57,70,0.2); color: #E63946; }
 
         .action-btn {
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 500;
-            margin: 0 2px;
+            padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
+            font-size: 12px; font-weight: 500; margin: 2px;
+            min-height: 36px; display: inline-flex; align-items: center;
+            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
         }
+        .action-btn.delete  { background: rgba(230,57,70,0.2);  color: #E63946; }
+        .action-btn.promote { background: rgba(108,99,255,0.2); color: #6C63FF; }
+        .action-btn.ban     { background: rgba(230,57,70,0.2);  color: #E63946; }
+        .action-btn.unban   { background: rgba(67,185,127,0.2); color: #43B97F; }
 
-        .action-btn.delete {
-            background: rgba(230,57,70,0.2);
-            color: #E63946;
-        }
-
-        .action-btn.promote {
-            background: rgba(108,99,255,0.2);
-            color: #6C63FF;
-        }
-
-        .action-btn.ban {
-            background: rgba(230,57,70,0.2);
-            color: #E63946;
-        }
-
-        .action-btn.unban {
-            background: rgba(67,185,127,0.2);
-            color: #43B97F;
-        }
-
-        .search-bar {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .search-bar input, .search-bar select {
-            padding: 10px 14px;
-            background: #1a1a24;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: white;
-            font-family: inherit;
-        }
-
+        .search-bar { margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
         .search-bar input {
-            flex: 1;
+            flex: 1; min-width: 0; padding: 10px 14px;
+            background: #1a1a24; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; color: white; font-family: inherit;
+            font-size: 16px; outline: none;
+            -webkit-appearance: none; appearance: none;
         }
+        .search-bar input:focus { border-color: #6C63FF; }
 
         .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #43B97F;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            z-index: 2000;
-            animation: fadeIn 0.3s ease;
+            position: fixed; bottom: 20px; right: 16px; left: 16px; max-width: 360px;
+            margin: 0 auto;
+            background: #43B97F; color: white; padding: 12px 20px;
+            border-radius: 10px; z-index: 2000; animation: fadeIn 0.3s ease;
+            font-size: 14px;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <h1>ChatFlow Admin Panel</h1>
+        <h1>⚙️ Admin Panel</h1>
         <div class="header-buttons">
             <button class="btn btn-outline" onclick="refreshAll()">⟳ Refresh</button>
-            <a href="/" class="btn btn-primary">← Back to Chat</a>
+            <a href="/" class="btn btn-primary">← Chat</a>
         </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card"><div class="stat-value" id="totalUsers">-</div><div class="stat-label">Total Users</div></div>
-        <div class="stat-card"><div class="stat-value" id="totalMessages">-</div><div class="stat-label">Total Messages</div></div>
-        <div class="stat-card"><div class="stat-value" id="totalRooms">-</div><div class="stat-label">Total Rooms</div></div>
-        <div class="stat-card"><div class="stat-value" id="bannedUsers">-</div><div class="stat-label">Banned Users</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalMessages">-</div><div class="stat-label">Messages</div></div>
+        <div class="stat-card"><div class="stat-value" id="totalRooms">-</div><div class="stat-label">Rooms</div></div>
+        <div class="stat-card"><div class="stat-value" id="bannedUsers">-</div><div class="stat-label">Banned</div></div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
-        <button class="tab active" data-tab="users">👥 Users</button>
-        <button class="tab" data-tab="rooms">🏠 Rooms</button>
-        <button class="tab" data-tab="bans">🚫 Bans</button>
+        <button class="tab active" onclick="switchTab('users', this)">👥 Users</button>
+        <button class="tab" onclick="switchTab('rooms', this)">🏠 Rooms</button>
+        <button class="tab" onclick="switchTab('bans', this)">🚫 Bans</button>
     </div>
 
-    <!-- Users Panel -->
     <div id="usersPanel" class="panel active">
         <div class="search-bar">
-            <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers()">
+            <input type="text" id="userSearch" placeholder="Search users…" oninput="filterUsers()"/>
         </div>
         <div class="table-container">
             <table>
-                <thead><tr><th>Username</th><th>Email</th><th>Badge</th><th>Messages</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="usersList"><tr><td colspan="6">Loading users...</td></tr></tbody>
+                <thead><tr><th>Username</th><th>Email</th><th>Badge</th><th>Msgs</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="usersList"><tr><td colspan="6">Loading…</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Rooms Panel -->
     <div id="roomsPanel" class="panel">
         <div class="table-container">
             <table>
-                <thead><tr><th>Room Name</th><th>Description</th><th>Created By</th><th>Created At</th><th>Type</th><th>Action</th></tr></thead>
-                <tbody id="roomsList"><tr><td colspan="6">Loading rooms...</td></tr></tbody>
+                <thead><tr><th>Room</th><th>Description</th><th>Created By</th><th>Type</th><th>Action</th></tr></thead>
+                <tbody id="roomsList"><tr><td colspan="5">Loading…</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Bans Panel -->
     <div id="bansPanel" class="panel">
         <div class="table-container">
             <table>
-                <thead><tr><th>Username</th><th>Banned By</th><th>Reason</th><th>Banned At</th><th>Expires</th><th>Action</th></tr></thead>
-                <tbody id="bansList"><tr><td colspan="6">Loading bans...</td></tr></tbody>
+                <thead><tr><th>Username</th><th>Banned By</th><th>Reason</th><th>Expires</th><th>Action</th></tr></thead>
+                <tbody id="bansList"><tr><td colspan="5">Loading…</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <script>
-        // Tab switching
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.dataset.tab;
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                document.getElementById(`${tabId}Panel`).classList.add('active');
-                if (tabId === 'rooms') loadRooms();
-                if (tabId === 'bans') loadBans();
-            });
+<script>
+    var currentTab = 'users';
+
+    function switchTab(tab, el) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        el.classList.add('active');
+        document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+        document.getElementById(tab + 'Panel').classList.add('active');
+        if (tab === 'rooms') loadRooms();
+        if (tab === 'bans')  loadBans();
+    }
+
+    async function refreshAll() {
+        await loadStats();
+        await loadUsers();
+        if (currentTab === 'rooms') loadRooms();
+        if (currentTab === 'bans')  loadBans();
+        showToast('Data refreshed');
+    }
+
+    async function loadStats() {
+        try {
+            var res = await fetch('/api/admin/stats');
+            if (!res.ok) return;
+            var s = await res.json();
+            document.getElementById('totalUsers').innerText    = s.total_users    || 0;
+            document.getElementById('totalMessages').innerText = s.total_messages || 0;
+            document.getElementById('totalRooms').innerText    = s.total_rooms    || 0;
+            document.getElementById('bannedUsers').innerText   = s.banned_users   || 0;
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadUsers() {
+        try {
+            var res   = await fetch('/api/admin/users');
+            if (!res.ok) throw new Error('Failed');
+            var users = await res.json();
+            window.allUsers = users;
+            renderUsers(users);
+        } catch(e) {
+            document.getElementById('usersList').innerHTML = '<tr><td colspan="6">Error loading users.</td></tr>';
+        }
+    }
+
+    function renderUsers(users) {
+        var tbody = document.getElementById('usersList');
+        if (!users.length) { tbody.innerHTML = '<tr><td colspan="6">No users found</td></tr>'; return; }
+        tbody.innerHTML = users.map(function(u) {
+            return '<tr>'
+                + '<td><strong>' + esc(u.username) + '</strong></td>'
+                + '<td>' + esc(u.email || '-') + '</td>'
+                + '<td><span class="badge">' + esc(u.badge || 'Member') + '</span></td>'
+                + '<td>' + (u.message_count || 0) + '</td>'
+                + '<td>'
+                  + (u.is_admin  ? '<span class="badge badge-admin">Admin</span> '  : '')
+                  + (u.is_banned ? '<span class="badge badge-banned">Banned</span>' : '')
+                + '</td>'
+                + '<td>'
+                  + (!u.is_admin  ? '<button class="action-btn promote" onclick="makeAdmin(\'' + esc(u.username) + '\')">Make Admin</button>' : '')
+                  + (!u.is_banned ? '<button class="action-btn ban"   onclick="banUser(\''   + esc(u.username) + '\')">Ban</button>'
+                                  : '<button class="action-btn unban" onclick="unbanUser(\'' + esc(u.username) + '\')">Unban</button>')
+                + '</td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function filterUsers() {
+        var term = document.getElementById('userSearch').value.toLowerCase();
+        if (window.allUsers) {
+            renderUsers(window.allUsers.filter(function(u) {
+                return u.username.toLowerCase().includes(term) || (u.email && u.email.toLowerCase().includes(term));
+            }));
+        }
+    }
+
+    async function makeAdmin(username) {
+        if (!confirm('Make ' + username + ' admin?')) return;
+        await fetch('/api/admin/set_admin', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, is_admin:true})});
+        showToast(username + ' is now admin'); loadUsers();
+    }
+
+    async function banUser(username) {
+        var reason = prompt('Reason for ban:', 'Violation');
+        if (!reason) return;
+        await fetch('/api/admin/ban', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, reason})});
+        showToast(username + ' banned'); loadUsers(); loadStats();
+        if (currentTab === 'bans') loadBans();
+    }
+
+    async function unbanUser(username) {
+        if (!confirm('Unban ' + username + '?')) return;
+        await fetch('/api/admin/unban', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username})});
+        showToast(username + ' unbanned'); loadUsers(); loadStats();
+        if (currentTab === 'bans') loadBans();
+    }
+
+    async function loadRooms() {
+        try {
+            var res   = await fetch('/api/rooms');
+            var rooms = await res.json();
+            renderRooms(rooms);
+        } catch(e) { console.error(e); }
+    }
+
+    function renderRooms(rooms) {
+        var tbody = document.getElementById('roomsList');
+        if (!rooms.length) { tbody.innerHTML = '<tr><td colspan="5">No rooms found</td></tr>'; return; }
+        tbody.innerHTML = rooms.map(function(r) {
+            return '<tr>'
+                + '<td><strong>#' + esc(r.name) + '</strong></td>'
+                + '<td>' + esc(r.description || '-') + '</td>'
+                + '<td>' + esc(r.created_by  || 'system') + '</td>'
+                + '<td>' + (r.is_default ? 'Default' : 'Custom') + '</td>'
+                + '<td>' + (!r.is_default ? '<button class="action-btn delete" onclick="deleteRoom(\'' + esc(r.name) + '\')">Delete</button>' : '—') + '</td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    async function deleteRoom(roomName) {
+        if (!confirm('Delete room "' + roomName + '" and all its messages?')) return;
+        var res  = await fetch('/api/admin/delete_room', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({room_name:roomName})});
+        var data = await res.json();
+        if (data.ok) { showToast('Room "' + roomName + '" deleted'); loadRooms(); loadStats(); }
+        else showToast(data.msg || 'Failed', 'error');
+    }
+
+    async function loadBans() {
+        try {
+            var res  = await fetch('/api/admin/bans');
+            if (!res.ok) throw new Error();
+            var bans = await res.json();
+            renderBans(bans);
+        } catch(e) {
+            document.getElementById('bansList').innerHTML = '<tr><td colspan="5">No bans found</td></tr>';
+        }
+    }
+
+    function renderBans(bans) {
+        var tbody = document.getElementById('bansList');
+        if (!bans.length) { tbody.innerHTML = '<tr><td colspan="5">No bans</td></tr>'; return; }
+        tbody.innerHTML = bans.map(function(b) {
+            return '<tr>'
+                + '<td><strong>' + esc(b.username) + '</strong></td>'
+                + '<td>' + esc(b.banned_by || 'System') + '</td>'
+                + '<td>' + esc(b.reason    || 'No reason') + '</td>'
+                + '<td>' + (b.expires_at ? new Date(b.expires_at).toLocaleDateString() : 'Permanent') + '</td>'
+                + '<td><button class="action-btn unban" onclick="unbanUser(\'' + esc(b.username) + '\')">Unban</button></td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    function showToast(msg, type) {
+        var t = document.createElement('div');
+        t.className   = 'toast';
+        t.textContent = msg;
+        if (type === 'error') t.style.background = '#E63946';
+        document.body.appendChild(t);
+        setTimeout(function() { t.remove(); }, 3000);
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function(m) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
         });
+    }
 
-        async function refreshAll() {
-            await loadStats();
-            await loadUsers();
-            if (document.getElementById('roomsPanel').classList.contains('active')) loadRooms();
-            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
-            showToast('Data refreshed');
-        }
-
-        async function loadStats() {
-            try {
-                const res = await fetch('/api/admin/stats');
-                if (res.ok) {
-                    const stats = await res.json();
-                    document.getElementById('totalUsers').innerText = stats.total_users || 0;
-                    document.getElementById('totalMessages').innerText = stats.total_messages || 0;
-                    document.getElementById('totalRooms').innerText = stats.total_rooms || 0;
-                    document.getElementById('bannedUsers').innerText = stats.banned_users || 0;
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        // ========== USERS ==========
-        async function loadUsers() {
-            try {
-                const res = await fetch('/api/admin/users');
-                if (!res.ok) throw new Error('Failed');
-                const users = await res.json();
-                window.allUsers = users;
-                renderUsers(users);
-            } catch(e) {
-                document.getElementById('usersList').innerHTML = '<tr><td colspan="6">Error loading users. Are you admin?</td></tr>';
-            }
-        }
-
-        function renderUsers(users) {
-            const tbody = document.getElementById('usersList');
-            if (!users.length) {
-                tbody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = users.map(u => `
-                <tr>
-                    <td><strong>${escapeHtml(u.username)}</strong></td>
-                    <td>${escapeHtml(u.email || '-')}</td>
-                    <td><span class="badge">${u.badge || 'Member'}</span></td>
-                    <td>${u.message_count || 0}</td>
-                    <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : ''} ${u.is_banned ? '<span class="badge badge-banned">Banned</span>' : ''}</td>
-                    <td>
-                        ${!u.is_admin ? `<button class="action-btn promote" onclick="makeAdmin('${u.username}')">Make Admin</button>` : ''}
-                        ${!u.is_banned ? `<button class="action-btn ban" onclick="banUser('${u.username}')">Ban</button>` : `<button class="action-btn unban" onclick="unbanUser('${u.username}')">Unban</button>`}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function filterUsers() {
-            const term = document.getElementById('userSearch').value.toLowerCase();
-            if (window.allUsers) {
-                const filtered = window.allUsers.filter(u => u.username.toLowerCase().includes(term) || (u.email && u.email.toLowerCase().includes(term)));
-                renderUsers(filtered);
-            }
-        }
-
-        async function makeAdmin(username) {
-            if (!confirm(`Make ${username} admin?`)) return;
-            await fetch('/api/admin/set_admin', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username, is_admin: true}) });
-            showToast(`${username} is now admin`);
-            loadUsers();
-        }
-
-        async function banUser(username) {
-            const reason = prompt('Reason for ban:', 'Violation');
-            if (!reason) return;
-            await fetch('/api/admin/ban', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username, reason}) });
-            showToast(`${username} banned`);
-            loadUsers(); loadStats();
-            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
-        }
-
-        async function unbanUser(username) {
-            if (!confirm(`Unban ${username}?`)) return;
-            await fetch('/api/admin/unban', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username}) });
-            showToast(`${username} unbanned`);
-            loadUsers(); loadStats();
-            if (document.getElementById('bansPanel').classList.contains('active')) loadBans();
-        }
-
-        // ========== ROOMS ==========
-        async function loadRooms() {
-            try {
-                const res = await fetch('/api/rooms');
-                const rooms = await res.json();
-                renderRooms(rooms);
-            } catch(e) { console.error(e); }
-        }
-
-        function renderRooms(rooms) {
-            const tbody = document.getElementById('roomsList');
-            if (!rooms.length) {
-                tbody.innerHTML = '<tr><td colspan="6">No rooms found</td></tr>';
-                return;
-            }
-            tbody.innerHTML = rooms.map(r => `
-                <tr>
-                    <td><strong>#${escapeHtml(r.name)}</strong></td>
-                    <td>${escapeHtml(r.description || '-')}</td>
-                    <td>${escapeHtml(r.created_by || 'system')}</td>
-                    <td>${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
-                    <td>${r.is_default ? 'Default' : 'Custom'}</td>
-                    <td>${!r.is_default ? `<button class="action-btn delete" onclick="deleteRoom('${r.name}')">Delete Room</button>` : '—'}</td>
-                </tr>
-            `).join('');
-        }
-
-        async function deleteRoom(roomName) {
-            if (!confirm(`Delete room "${roomName}" and all its messages?`)) return;
-            const res = await fetch('/api/admin/delete_room', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({room_name: roomName}) });
-            const data = await res.json();
-            if (data.ok) {
-                showToast(`Room "${roomName}" deleted`);
-                loadRooms();
-                loadStats();
-            } else {
-                showToast(data.msg || 'Failed', 'error');
-            }
-        }
-
-        // ========== BANS ==========
-        async function loadBans() {
-            try {
-                const res = await fetch('/api/admin/bans');
-                if (!res.ok) throw new Error();
-                const bans = await res.json();
-                renderBans(bans);
-            } catch(e) {
-                // Fallback: if endpoint missing, show message
-                document.getElementById('bansList').innerHTML = '<tr><td colspan="6">No bans endpoint or no bans</td></tr>';
-            }
-        }
-
-        function renderBans(bans) {
-            const tbody = document.getElementById('bansList');
-            if (!bans.length) {
-                tbody.innerHTML = '<tr><td colspan="6">No bans</td></tr>';
-                return;
-            }
-            tbody.innerHTML = bans.map(b => `
-                <tr>
-                    <td><strong>${escapeHtml(b.username)}</strong></td>
-                    <td>${escapeHtml(b.banned_by || 'System')}</td>
-                    <td>${escapeHtml(b.reason || 'No reason')}</td>
-                    <td>${b.banned_at ? new Date(b.banned_at).toLocaleString() : '-'}</td>
-                    <td>${b.expires_at ? new Date(b.expires_at).toLocaleString() : 'Permanent'}</td>
-                    <td><button class="action-btn unban" onclick="unbanUser('${b.username}')">Unban</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function showToast(msg, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = msg;
-            if (type === 'error') toast.style.background = '#E63946';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-        }
-
-        // Initial load
-        loadStats();
-        loadUsers();
-        loadRooms();   // preload rooms in background
-        loadBans();    // preload bans
-    </script>
+    loadStats(); loadUsers(); loadRooms(); loadBans();
+</script>
 </body>
 </html>
