@@ -4,21 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>ChatFlow</title>
-<!-- PWA Support (optional) -->
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#6C63FF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ChatFlow">
-<!-- Open Graph for better social sharing previews -->
 <meta property="og:title" content="ChatFlow – Real‑time Chat" />
 <meta property="og:description" content="Join me on ChatFlow – AI assistant, rooms, and direct messaging." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://ai-chatroom-app.onrender.com/" />
-<meta name="twitter:card" content="summary" />
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <style>
-/* ---------- BASE STYLES ---------- */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Space+Grotesk:wght@500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -31,11 +26,9 @@
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden;}
 
-/* Mobile menu buttons */
-.mobile-menu-btn,.mobile-panel-btn{display:none;position:fixed;top:12px;z-index:1001;background:var(--accent);border:none;border-radius:10px;padding:10px;color:white;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.mobile-menu-btn,.mobile-panel-btn{display:none;position:fixed;top:12px;z-index:1001;background:var(--accent);border:none;border-radius:10px;padding:10px;color:white;cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .mobile-menu-btn{left:12px;}.mobile-panel-btn{right:12px;}
 
-/* Sidebar */
 #sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .sb-top{padding:16px 16px 12px;border-bottom:1px solid var(--border);}
 .app-brand{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;gap:8px;}
@@ -44,21 +37,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .search-wrap input{width:100%;padding:8px 10px 8px 32px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;}
 .search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);}
 .sb-section{padding:10px 16px 4px;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between;}
-.sb-add{cursor:pointer;color:var(--muted);font-size:18px;}
-.room-item{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--muted);border-left:2px solid transparent;}
+.sb-add{cursor:pointer;color:var(--muted);font-size:18px;padding:4px;-webkit-tap-highlight-color:transparent;}
+.room-item{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--muted);border-left:2px solid transparent;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:40px;}
 .room-item:hover{background:rgba(255,255,255,0.04);color:var(--text);}
 .room-item.active{background:var(--accent-dim);color:var(--text);border-left-color:var(--accent);}
 .room-item .cnt{margin-left:auto;font-size:11px;background:var(--surface3);border-radius:20px;padding:1px 7px;}
 .room-item.dm-item .hash{color:var(--online);}
+
+/* DM unread badge */
+.dm-unread{
+  margin-left:auto;min-width:18px;height:18px;
+  background:var(--danger);border-radius:20px;
+  font-size:11px;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 5px;
+}
+
 .sb-bottom{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);}
 .me-row{display:flex;align-items:center;gap:10px;}
 .me-info{flex:1;min-width:0;}
 .me-name{font-size:13px;font-weight:500;}
 .me-badge{font-size:11px;color:var(--muted);}
-.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:6px;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:6px;border-radius:6px;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .icon-btn:hover{background:var(--surface2);color:var(--text);}
 
-/* Main chat */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #chat-header{padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .header-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;}
@@ -82,94 +84,63 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .msg-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
 .rxn-badge{background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:3px;}
 .msg-actions{position:absolute;right:-4px;top:-6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;gap:2px;opacity:0;z-index:10;}
-.rxn-btn{background:none;border:none;cursor:pointer;font-size:14px;}
+.rxn-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px;min-width:28px;min-height:28px;-webkit-tap-highlight-color:transparent;}
 #typing-bar{padding:0 20px 6px;font-size:12px;color:var(--muted);font-style:italic;min-height:22px;}
 #input-row{padding:12px 20px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-end;gap:10px;}
-#msg-input{flex:1;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;resize:none;max-height:120px;}
-#send-btn{width:42px;height:42px;border-radius:10px;background:var(--accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#msg-input{flex:1;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;resize:none;max-height:120px;font-family:inherit;-webkit-appearance:none;}
+#send-btn{width:44px;height:44px;border-radius:10px;background:var(--accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 
-/* Right panel */
 #right-panel{width:240px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .rp-header{padding:14px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;text-transform:uppercase;color:var(--muted);}
 .rp-body{flex:1;overflow-y:auto;padding:8px;}
-.member-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;}
+.member-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .member-row:hover{background:var(--surface2);}
 .online-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
 .online-dot.on{background:var(--online);}
-
-/* AI response */
-.ai-response{background:linear-gradient(135deg, rgba(108,99,255,0.1), rgba(108,99,255,0.05));border-radius:12px;padding:12px;margin-top:5px;}
+.ai-response{background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(108,99,255,0.05));border-radius:12px;padding:12px;margin-top:5px;}
 .ai-response strong{color:#6C63FF;}
 
-/* Mobile responsivity + sliding sidebars */
-@media (max-width: 768px){
-  .mobile-menu-btn,.mobile-panel-btn{display:block;}
-  
-  /* Sidebar sliding */
-  #sidebar{
-    position:fixed;
-    left:-280px;
-    top:0;
-    bottom:0;
-    z-index:1000;
-    transition:left 0.3s ease-in-out;
-    width:280px;
-    background:var(--surface);
-    box-shadow:2px 0 10px rgba(0,0,0,0.3);
-  }
-  #sidebar.open{ left:0; }
-  
-  /* Right panel sliding */
-  #right-panel{
-    position:fixed;
-    right:-280px;
-    top:0;
-    bottom:0;
-    z-index:1000;
-    transition:right 0.3s ease-in-out;
-    width:280px;
-    background:var(--surface);
-    box-shadow:-2px 0 10px rgba(0,0,0,0.3);
-  }
-  #right-panel.open{ right:0; }
-  
-  /* Overlay background */
-  .sidebar-overlay{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    background:rgba(0,0,0,0.5);
-    z-index:999;
-    display:none;
-  }
-  .sidebar-overlay.active{ display:block; }
-  
-  #main{ width:100%; }
-  #chat-header{ padding-left:55px; padding-right:55px; }
+/* Loading indicator for DM history */
+.dm-loading{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+
+/* Date separator */
+.date-sep{text-align:center;font-size:11px;color:var(--muted);padding:8px 0;position:relative;}
+.date-sep::before,.date-sep::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);}
+.date-sep::before{left:0;}.date-sep::after{right:0;}
+
+@media (max-width:768px){
+  .mobile-menu-btn,.mobile-panel-btn{display:flex;align-items:center;justify-content:center;}
+  #sidebar{position:fixed;left:-280px;top:0;bottom:0;z-index:1000;transition:left 0.3s ease-in-out;width:280px;background:var(--surface);box-shadow:2px 0 10px rgba(0,0,0,0.3);}
+  #sidebar.open{left:0;}
+  #right-panel{position:fixed;right:-280px;top:0;bottom:0;z-index:1000;transition:right 0.3s ease-in-out;width:280px;background:var(--surface);box-shadow:-2px 0 10px rgba(0,0,0,0.3);}
+  #right-panel.open{right:0;}
+  .sidebar-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;display:none;}
+  .sidebar-overlay.active{display:block;}
+  #main{width:100%;}
+  #chat-header{padding-left:60px;padding-right:60px;}
+  .msg-actions{opacity:1;} /* always show on mobile */
 }
 
-/* Modals */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:none;align-items:center;justify-content:center;}
 .overlay.open{display:flex;}
-.modal{background:var(--surface);border-radius:20px;padding:28px;width:400px;max-width:94vw;}
-.modal .close{float:right;cursor:pointer;}
+.modal{background:var(--surface);border-radius:20px;padding:28px;width:400px;max-width:94vw;max-height:90vh;overflow-y:auto;}
+.modal .close{float:right;cursor:pointer;font-size:18px;padding:4px;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 .form-field{margin-bottom:14px;}
 .form-field label{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
-.form-field input,.form-field textarea{width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);}
-.modal-btn{width:100%;padding:11px;background:var(--accent);border:none;border-radius:8px;color:#fff;cursor:pointer;}
-.color-row{display:flex;gap:8px;margin-top:6px;}
-.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.form-field input,.form-field textarea{width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;-webkit-appearance:none;outline:none;}
+.form-field input:focus,.form-field textarea:focus{border-color:var(--accent);}
+.modal-btn{width:100%;padding:13px;background:var(--accent);border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:15px;font-weight:600;min-height:48px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.color-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;-webkit-tap-highlight-color:transparent;}
 .color-swatch.sel{border-color:#fff;}
+.alert-sm{font-size:13px;padding:8px 10px;border-radius:6px;margin-bottom:10px;display:none;}
+.alert-sm.ok{background:rgba(67,185,127,0.15);color:#5ed9a0;display:block;}
+.alert-sm.err{background:rgba(230,57,70,0.15);color:#ff8a8f;display:block;}
 </style>
 </head>
 <body>
 
-<!-- Overlay for closing sidebars -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeAllSidebars()"></div>
-
-<!-- Mobile menu buttons -->
 <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
 <button class="mobile-panel-btn" onclick="toggleMobilePanel()">👥</button>
 
@@ -179,7 +150,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div class="app-brand">💬 Chat<span class="dot">Flow</span></div>
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" placeholder="Search messages..." id="global-search" oninput="onSearch(this.value)" onfocus="openSearch()">
+      <input type="text" placeholder="Search messages..." id="global-search" oninput="onSearch(this.value)">
     </div>
   </div>
   <div class="sb-section">Rooms <span class="sb-add" onclick="openModal('room-modal')">＋</span></div>
@@ -193,38 +164,40 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <div class="me-name" id="my-name-sb">{{ username }}</div>
         <div class="me-badge" id="my-badge-sb">Member · ● Online</div>
       </div>
-      <button class="icon-btn" onclick="openModal('profile-modal')">⚙</button>
-      <button class="icon-btn" onclick="shareApp()">📤</button>
-      <button class="icon-btn" onclick="location.href='/api/logout'">⏻</button>
+      <button class="icon-btn" onclick="openModal('profile-modal')" title="Profile">⚙</button>
+      <button class="icon-btn" onclick="shareApp()" title="Share">📤</button>
+      <button class="icon-btn" onclick="location.href='/api/logout'" title="Logout">⏻</button>
     </div>
   </div>
 </div>
 
-<!-- Main chat area -->
+<!-- Main chat -->
 <div id="main">
   <div id="chat-header">
     <span id="header-hash" style="font-size:18px">💬</span>
     <span class="header-title" id="header-title">General</span>
-    <span class="header-desc" id="header-desc"></span>
+    <span class="header-desc" id="header-desc" style="font-size:12px;color:var(--muted)"></span>
     <span class="online-pill" id="online-pill">0 online</span>
-    <div class="header-actions">
+    <div class="header-actions" style="display:flex;gap:4px;margin-left:8px;">
       <button class="icon-btn" onclick="toggleSearch()">🔍</button>
       <button class="icon-btn" onclick="togglePanel()">👥</button>
     </div>
   </div>
-  <div id="search-panel" style="display:none; position:absolute; top:54px; right:20px; width:320px; background:var(--surface2); border-radius:14px; padding:14px; z-index:100;">
-    <input type="text" id="search-input" placeholder="Search in this room..." oninput="roomSearch(this.value)" style="width:100%; padding:8px; background:var(--surface3); border:1px solid var(--border); border-radius:8px; color:white;">
-    <div id="search-results"></div>
+  <div id="search-panel" style="display:none;position:absolute;top:54px;right:20px;width:320px;background:var(--surface2);border-radius:14px;padding:14px;z-index:100;border:1px solid var(--border);">
+    <input type="text" id="search-input" placeholder="Search in this room..." oninput="roomSearch(this.value)" style="width:100%;padding:8px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;color:white;font-size:16px;-webkit-appearance:none;outline:none;">
+    <div id="search-results" style="margin-top:8px;"></div>
   </div>
   <div id="messages"></div>
   <div id="typing-bar"></div>
   <div id="input-row">
     <textarea id="msg-input" rows="1" placeholder="Message #General... (type /ai for AI help)" maxlength="1000" onkeydown="onKey(event)" oninput="onInputChange(this)"></textarea>
-    <button id="send-btn" onclick="sendMsg()"><svg viewBox="0 0 24 24" width="17" height="17"><path d="M2 21l21-9L2 3v7l15 2-15 2z" fill="#fff"/></svg></button>
+    <button id="send-btn" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24" width="17" height="17"><path d="M2 21l21-9L2 3v7l15 2-15 2z" fill="#fff"/></svg>
+    </button>
   </div>
 </div>
 
-<!-- Right panel (members) -->
+<!-- Right panel -->
 <div id="right-panel">
   <div class="rp-header">Members</div>
   <div class="rp-body" id="member-list"></div>
@@ -235,9 +208,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
   <div class="modal">
     <span class="close" onclick="closeModal('profile-modal')">✕</span>
     <h2>Your Profile</h2>
-    <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
-      <div class="ava lg" id="prof-ava" style="width:48px;height:48px;font-size:16px;">?</div>
-      <div><div id="prof-username" style="font-size:16px; font-weight:600;">–</div><div id="prof-stats" style="font-size:12px; color:var(--muted);">0 messages · Member</div></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;margin-top:12px;">
+      <div class="ava" id="prof-ava" style="width:48px;height:48px;font-size:16px;background:var(--accent);color:#fff;">?</div>
+      <div><div id="prof-username" style="font-size:16px;font-weight:600;">–</div><div id="prof-stats" style="font-size:12px;color:var(--muted);">0 messages · Member</div></div>
     </div>
     <div class="alert-sm" id="prof-alert"></div>
     <div class="form-field"><label>Bio</label><textarea id="prof-bio" rows="3"></textarea></div>
@@ -254,7 +227,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <span class="close" onclick="closeModal('room-modal')">✕</span>
     <h2>Create a Room</h2>
     <div class="alert-sm" id="room-alert"></div>
-    <div class="form-field"><label>Room Name</label><input type="text" id="new-room-name" maxlength="30"></div>
+    <div class="form-field"><label>Room Name</label><input type="text" id="new-room-name" maxlength="30" autocorrect="off" autocapitalize="none"></div>
     <div class="form-field"><label>Description</label><input type="text" id="new-room-desc" maxlength="80"></div>
     <button class="modal-btn" onclick="createRoom()">Create Room</button>
   </div>
@@ -266,7 +239,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <span class="close" onclick="closeModal('dm-modal')">✕</span>
     <h2>Direct Message</h2>
     <div class="alert-sm" id="dm-alert"></div>
-    <div class="form-field"><label>Username</label><input type="text" id="dm-target" maxlength="20"></div>
+    <div class="form-field"><label>Username</label><input type="text" id="dm-target" maxlength="20" autocorrect="off" autocapitalize="none"></div>
     <button class="modal-btn" onclick="openDM()">Open DM</button>
   </div>
 </div>
@@ -275,284 +248,319 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 // ======================= GLOBALS =======================
 const ME = "{{ username }}";
 const socket = io();
-let currentRoom = 'General';
-let currentDM = null;
-let myColor = '#6C63FF';
-let myBadge = 'Member';
-let rooms = [];
-let onlineUsers = new Set();
-let dmList = [];
+let currentRoom  = 'General';
+let currentDM    = null;
+let myColor      = '#6C63FF';
+let myBadge      = 'Member';
+let rooms        = [];
+let onlineUsers  = new Set();
 let typingTimer;
-const COLORS = ['#6C63FF','#FF6584','#43B97F','#F4A261','#2A9D8F','#E76F51','#457B9D','#E63946','#9C6ADE','#00BFA5','#FF7043','#5C6BC0'];
+let dmUnread     = {};   // { username: unreadCount }
+
+const COLORS    = ['#6C63FF','#FF6584','#43B97F','#F4A261','#2A9D8F','#E76F51','#457B9D','#E63946','#9C6ADE','#00BFA5','#FF7043','#5C6BC0'];
 const REACTIONS = ['👍','❤️','😂','😮','😢','🔥'];
 
-// ======================= MOBILE SIDEBARS & SWIPE =======================
+// ── DM list persisted in localStorage ──────────────────
+// key: "dmList_<username>" → JSON array of usernames
+function dmStorageKey()  { return 'dmList_' + ME; }
+function loadDMList()    { try { return JSON.parse(localStorage.getItem(dmStorageKey()) || '[]'); } catch(e) { return []; } }
+function saveDMList(list){ try { localStorage.setItem(dmStorageKey(), JSON.stringify(list)); } catch(e) {} }
+
+let dmList = loadDMList();   // loaded once, mutated, then saved on changes
+
+function addToDMList(user) {
+  if (user === ME || dmList.includes(user)) return;
+  dmList.push(user);
+  saveDMList(dmList);
+  renderDMList();
+}
+
+// ── Unread counts persisted in localStorage ─────────────
+function unreadKey()       { return 'dmUnread_' + ME; }
+function loadUnread()      { try { return JSON.parse(localStorage.getItem(unreadKey()) || '{}'); } catch(e) { return {}; } }
+function saveUnread(obj)   { try { localStorage.setItem(unreadKey(), JSON.stringify(obj)); } catch(e) {} }
+function clearUnread(user) { dmUnread[user] = 0; saveUnread(dmUnread); renderDMList(); }
+function bumpUnread(user)  {
+  if (currentDM === user) return;    // already viewing this DM
+  dmUnread[user] = (dmUnread[user] || 0) + 1;
+  saveUnread(dmUnread);
+  renderDMList();
+}
+
+dmUnread = loadUnread();
+
+// ======================= MOBILE =======================
 function closeAllSidebars() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('right-panel').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('active');
 }
-
 function toggleMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  const isOpen = sidebar.classList.contains('open');
-  if (!isOpen) {
-    sidebar.classList.add('open');
-    overlay.classList.add('active');
-  } else {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('active');
-  }
+  var sb = document.getElementById('sidebar'), ov = document.getElementById('sidebarOverlay');
+  var open = sb.classList.toggle('open');
+  ov.classList.toggle('active', open);
+  if (open) document.getElementById('right-panel').classList.remove('open');
 }
-
 function toggleMobilePanel() {
-  const panel = document.getElementById('right-panel');
-  const overlay = document.getElementById('sidebarOverlay');
-  const isOpen = panel.classList.contains('open');
-  if (!isOpen) {
-    panel.classList.add('open');
-    overlay.classList.add('active');
-  } else {
-    panel.classList.remove('open');
-    overlay.classList.remove('active');
-  }
+  var rp = document.getElementById('right-panel'), ov = document.getElementById('sidebarOverlay');
+  var open = rp.classList.toggle('open');
+  ov.classList.toggle('active', open);
+  if (open) document.getElementById('sidebar').classList.remove('open');
 }
 
-// Swipe detection
-let touchStartX = 0;
-let touchEndX = 0;
-document.addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].screenX;
-});
-document.addEventListener('touchend', (e) => {
-  touchEndX = e.changedTouches[0].screenX;
-  const swipeDistance = touchEndX - touchStartX;
-  // Swipe right from left edge
-  if (touchStartX < 30 && swipeDistance > 70) {
-    if (!document.getElementById('sidebar').classList.contains('open')) {
-      toggleMobileSidebar();
-    }
-  }
-  // Swipe left from right edge
-  const windowWidth = window.innerWidth;
-  if (touchStartX > windowWidth - 30 && swipeDistance < -70) {
-    if (!document.getElementById('right-panel').classList.contains('open')) {
-      toggleMobilePanel();
-    }
-  }
-});
-// Prevent body scroll when overlay is active
-document.getElementById('sidebarOverlay').addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+// Swipe gestures
+var touchStartX = 0;
+document.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, {passive:true});
+document.addEventListener('touchend', function(e) {
+  var dx = e.changedTouches[0].screenX - touchStartX;
+  if (touchStartX < 30  && dx >  70 && !document.getElementById('sidebar').classList.contains('open'))     toggleMobileSidebar();
+  if (touchStartX > window.innerWidth-30 && dx < -70 && !document.getElementById('right-panel').classList.contains('open')) toggleMobilePanel();
+}, {passive:true});
 
-// ======================= SHARE FUNCTIONS =======================
+// ======================= SHARE =======================
 function shareApp() {
-  const url = window.location.href;
-  const title = 'ChatFlow – Join my chat!';
-  const text = 'Come chat with me on ChatFlow! Real‑time messaging with AI assistant.';
-  if (navigator.share) {
-    navigator.share({ title: title, text: text, url: url }).catch(() => console.log('Share cancelled'));
-  } else {
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard! Share it with your friends.');
-  }
+  if (navigator.share) navigator.share({title:'ChatFlow',text:'Come chat with me!',url:location.href}).catch(()=>{});
+  else { navigator.clipboard.writeText(location.href); alert('Link copied!'); }
+}
+function shareMessage(text, user) {
+  var s = '"' + text + '" – ' + user + ' on ChatFlow';
+  if (navigator.share) navigator.share({title:'Chat message',text:s,url:location.href}).catch(()=>{});
+  else { navigator.clipboard.writeText(s + '\n' + location.href); alert('Copied!'); }
 }
 
-function shareMessage(message, username) {
-  const shareText = `"${message}" – ${username} on ChatFlow`;
-  const url = window.location.href;
-  if (navigator.share) {
-    navigator.share({ title: 'Chat message', text: shareText, url: url }).catch(() => console.log('Share cancelled'));
-  } else {
-    navigator.clipboard.writeText(`${shareText}\n${url}`);
-    alert('Message copied to clipboard! You can paste it anywhere.');
-  }
-}
+// ======================= SOCKET =======================
+socket.on('connect', function() { console.log('Socket connected'); });
 
-// ======================= SOCKET HANDLERS =======================
-socket.on('connect', () => console.log('Socket connected'));
-socket.on('history', (data) => {
-  const box = document.getElementById('messages');
-  if (!box) return;
+socket.on('history', function(data) {
+  var box = document.getElementById('messages');
   box.innerHTML = '';
-  let lastDate = '';
-  data.messages.forEach(m => {
-    const d = (m.sent_at||'').split('T')[0];
+  var lastDate = '';
+  data.messages.forEach(function(m) {
+    var d = (m.sent_at||'').split('T')[0];
     if (d && d !== lastDate) { appendDateSep(d); lastDate = d; }
-    appendMsg(m);
+    appendMsg(m, false);
   });
   scrollToBottom();
 });
-socket.on('new_message', (msg) => { appendMsg(msg); scrollToBottom(); });
-socket.on('room_presence', (data) => {
+
+socket.on('new_message', function(msg) { appendMsg(msg, false); scrollToBottom(); });
+
+socket.on('room_presence', function(data) {
   onlineUsers = new Set(data.users || []);
-  const onlinePill = document.getElementById('online-pill');
-  if (onlinePill) onlinePill.innerText = `${data.count} online`;
-  const key = data.room.replace(/\s/g,'_');
-  const cntEl = document.getElementById(`cnt-${key}`);
+  var pill = document.getElementById('online-pill');
+  if (pill) pill.innerText = data.count + ' online';
+  var key = data.room.replace(/\s/g,'_');
+  var cntEl = document.getElementById('cnt-' + key);
   if (cntEl) cntEl.innerText = data.count;
   loadMembers();
 });
-socket.on('room_switched', (data) => { currentRoom = data.room; });
-socket.on('new_room', () => loadRooms());
-socket.on('reaction_update', (data) => {
-  const rxnDiv = document.getElementById(`rxn-${data.message_id}`);
+
+socket.on('room_switched', function(data) { currentRoom = data.room; });
+socket.on('new_room', function() { loadRooms(); });
+
+socket.on('reaction_update', function(data) {
+  var rxnDiv = document.getElementById('rxn-' + data.message_id);
   if (rxnDiv) rxnDiv.innerHTML = renderReactions(data.message_id, data.reactions);
 });
-socket.on('user_typing', (data) => {
-  const bar = document.getElementById('typing-bar');
-  if (bar) bar.innerText = `${data.username} is typing...`;
+
+socket.on('user_typing', function(data) {
+  var bar = document.getElementById('typing-bar');
+  if (bar) bar.innerText = data.username + ' is typing...';
   clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => { if (bar) bar.innerText = ''; }, 2000);
+  typingTimer = setTimeout(function() { if (bar) bar.innerText = ''; }, 2000);
 });
-socket.on('dm_message', (msg) => {
-  if (currentDM && (msg.username === currentDM || msg.to === currentDM)) {
+
+// ── DM handlers ─────────────────────────────────────────
+socket.on('dm_message', function(msg) {
+  var other = (msg.username === ME) ? msg.to : msg.username;
+
+  // Persist the DM partner
+  addToDMList(other);
+
+  // If this DM is currently open, render it; otherwise bump unread
+  if (currentDM === other) {
     appendMsg(msg, true);
     scrollToBottom();
+  } else {
+    bumpUnread(other);
   }
-  const other = msg.username === ME ? msg.to : msg.username;
-  if (!dmList.includes(other)) { dmList.push(other); renderDMList(); }
 });
-socket.on('dm_history', (data) => {
-  const box = document.getElementById('messages');
-  if (box) box.innerHTML = '';
-  data.messages.forEach(m => appendMsg(m, true));
+
+socket.on('dm_history', function(data) {
+  var box = document.getElementById('messages');
+  box.innerHTML = '';
+  if (!data.messages || data.messages.length === 0) {
+    box.innerHTML = '<div class="dm-loading">No messages yet. Say hello! 👋</div>';
+  } else {
+    var lastDate = '';
+    data.messages.forEach(function(m) {
+      var d = (m.sent_at||'').split('T')[0];
+      if (d && d !== lastDate) { appendDateSep(d); lastDate = d; }
+      appendMsg(m, true);
+    });
+  }
   scrollToBottom();
 });
-socket.on('kicked', (data) => { alert(`You were kicked: ${data.reason}`); location.reload(); });
-socket.on('banned', (data) => { alert(`Banned: ${data.reason}`); location.href = '/api/logout'; });
 
-function scrollToBottom() { const box = document.getElementById('messages'); if (box) box.scrollTop = box.scrollHeight; }
+socket.on('kicked', function(data) { alert('You were kicked: ' + data.reason); location.reload(); });
+socket.on('banned', function(data) { alert('Banned: ' + data.reason); location.href = '/api/logout'; });
 
-// ======================= LOAD DATA =======================
-window.addEventListener('load', async () => {
+function scrollToBottom() { var b = document.getElementById('messages'); if (b) b.scrollTop = b.scrollHeight; }
+
+// ======================= INIT =======================
+window.addEventListener('load', async function() {
   await loadMe();
   await loadRooms();
   await loadMembers();
+  renderDMList();      // show persisted DM list immediately
   socket.emit('join_room_req', { room: 'General' });
 });
 
 async function loadMe() {
-  const res = await fetch('/api/me');
-  const u = await res.json();
+  var res = await fetch('/api/me');
+  var u   = await res.json();
   if (!u.username) return;
   myColor = u.avatar_color;
   myBadge = u.badge;
   setAva('my-ava', ME, myColor);
   setAva('prof-ava', ME, myColor);
-  const myBadgeSpan = document.getElementById('my-badge-sb');
-  if (myBadgeSpan) myBadgeSpan.innerText = `${u.badge} · ● Online`;
-  const profUsername = document.getElementById('prof-username');
-  if (profUsername) profUsername.innerText = u.username;
-  const profStats = document.getElementById('prof-stats');
-  if (profStats) profStats.innerText = `${u.message_count} messages · ${u.badge}`;
-  const profEmail = document.getElementById('prof-email');
-  if (profEmail) profEmail.value = u.email;
-  const profBio = document.getElementById('prof-bio');
-  if (profBio) profBio.value = u.bio || '';
-  const profJoined = document.getElementById('prof-joined');
-  if (profJoined) profJoined.value = u.joined_at ? u.joined_at.split('T')[0] : '';
+  el('my-badge-sb',  u.badge + ' · ● Online');
+  el('prof-username', u.username);
+  el('prof-stats',    u.message_count + ' messages · ' + u.badge);
+  setVal('prof-email',  u.email);
+  setVal('prof-bio',    u.bio || '');
+  setVal('prof-joined', u.joined_at ? u.joined_at.split('T')[0] : '');
   buildSwatches(u.avatar_color);
 }
 
 async function loadRooms() {
   try {
-    const res = await fetch('/api/rooms');
-    if (!res.ok) throw new Error('Failed to fetch rooms');
+    var res = await fetch('/api/rooms');
     rooms = await res.json();
     renderRooms();
-  } catch(e) { console.error('loadRooms error:', e); }
+  } catch(e) { console.error('loadRooms:', e); }
 }
 
 async function loadMembers() {
   try {
-    const res = await fetch('/api/members');
-    const members = await res.json();
-    const list = document.getElementById('member-list');
+    var res     = await fetch('/api/members');
+    var members = await res.json();
+    var list    = document.getElementById('member-list');
     if (!list) return;
-    list.innerHTML = members.map(m => `
-      <div class="member-row" onclick="startDM('${m.username}')">
-        <div class="ava sm" style="background:${m.avatar_color||'#6C63FF'};color:#fff">${initials(m.username)}</div>
-        <div class="info">
-          <div class="mname">${escapeHtml(m.username)}</div>
-          <div class="mbadge">${m.badge} · ${m.message_count} msgs</div>
-        </div>
-        <div class="online-dot ${onlineUsers.has(m.username)?'on':''}"></div>
-      </div>`).join('');
+    list.innerHTML = members.map(function(m) {
+      return '<div class="member-row" onclick="startDM(\'' + esc(m.username) + '\')">'
+        + '<div class="ava" style="background:' + (m.avatar_color||'#6C63FF') + ';color:#fff;width:30px;height:30px;font-size:11px;">' + initials(m.username) + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        +   '<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(m.username) + '</div>'
+        +   '<div style="font-size:11px;color:var(--muted);">' + m.badge + ' · ' + m.message_count + ' msgs</div>'
+        + '</div>'
+        + '<div class="online-dot ' + (onlineUsers.has(m.username)?'on':'') + '"></div>'
+        + '</div>';
+    }).join('');
   } catch(e) { console.error(e); }
 }
 
 function renderRooms() {
-  const list = document.getElementById('room-list');
+  var list = document.getElementById('room-list');
   if (!list) return;
-  list.innerHTML = rooms.map(r => `
-    <div class="room-item ${r.name===currentRoom&&!currentDM?'active':''}" onclick="switchRoom('${r.name}','${escapeHtml(r.description||'')}')">
-      <span class="hash">#</span> ${escapeHtml(r.name)}
-      <span class="cnt" id="cnt-${r.name.replace(/\s/g,'_')}">0</span>
-    </div>`).join('');
+  list.innerHTML = rooms.map(function(r) {
+    var key = r.name.replace(/\s/g,'_');
+    return '<div class="room-item ' + (r.name===currentRoom&&!currentDM?'active':'') + '" onclick="switchRoom(\'' + esc(r.name) + '\',\'' + esc(r.description||'') + '\')">'
+      + '<span class="hash">#</span> ' + escapeHtml(r.name)
+      + '<span class="cnt" id="cnt-' + key + '">0</span>'
+      + '</div>';
+  }).join('');
 }
 
 function renderDMList() {
-  const list = document.getElementById('dm-list');
+  var list = document.getElementById('dm-list');
   if (!list) return;
-  list.innerHTML = dmList.map(u => `
-    <div class="room-item dm-item ${currentDM===u?'active':''}" onclick="startDM('${u}')">
-      <span class="hash">@</span> ${escapeHtml(u)}
-    </div>`).join('');
+  if (dmList.length === 0) {
+    list.innerHTML = '<div style="padding:8px 16px;font-size:12px;color:var(--muted);">No DMs yet</div>';
+    return;
+  }
+  list.innerHTML = dmList.map(function(u) {
+    var unread = dmUnread[u] || 0;
+    var badge  = unread > 0
+      ? '<span class="dm-unread">' + (unread > 99 ? '99+' : unread) + '</span>'
+      : '';
+    return '<div class="room-item dm-item ' + (currentDM===u?'active':'') + '" onclick="startDM(\'' + esc(u) + '\')">'
+      + '<span class="hash">@</span> ' + escapeHtml(u)
+      + badge
+      + '</div>';
+  }).join('');
 }
 
 // ======================= ROOM / DM SWITCHING =======================
 function switchRoom(name, desc) {
-  currentDM = null;
+  currentDM   = null;
   currentRoom = name;
   document.getElementById('header-hash').innerText = '#';
-  document.getElementById('header-title').innerText = name;
-  const headerDesc = document.getElementById('header-desc');
-  if (headerDesc) headerDesc.innerText = desc ? `· ${desc}` : '';
-  const msgInput = document.getElementById('msg-input');
-  if (msgInput) msgInput.placeholder = `Message #${name}...`;
+  el('header-title', name);
+  el('header-desc', desc ? '· ' + desc : '');
+  var inp = document.getElementById('msg-input');
+  if (inp) inp.placeholder = 'Message #' + name + '... (type /ai for AI help)';
   document.getElementById('messages').innerHTML = '';
   renderRooms();
   renderDMList();
   socket.emit('switch_room', { room: name });
+  closeAllSidebars();
 }
 
 function startDM(user) {
   if (user === ME) return;
-  currentDM = user;
+
+  currentDM   = user;
   currentRoom = null;
+
   document.getElementById('header-hash').innerText = '✉';
-  document.getElementById('header-title').innerText = user;
-  const headerDesc = document.getElementById('header-desc');
-  if (headerDesc) headerDesc.innerText = '· Direct Message';
-  const msgInput = document.getElementById('msg-input');
-  if (msgInput) msgInput.placeholder = `Message ${user}...`;
-  document.getElementById('messages').innerHTML = '';
-  if (!dmList.includes(user)) { dmList.push(user); renderDMList(); }
+  el('header-title', user);
+  el('header-desc', '· Direct Message');
+  var inp = document.getElementById('msg-input');
+  if (inp) inp.placeholder = 'Message ' + user + '...';
+
+  // Show loading state immediately
+  document.getElementById('messages').innerHTML = '<div class="dm-loading">Loading conversation…</div>';
+
+  // Clear unread for this user
+  clearUnread(user);
+
+  // Persist partner and re-render sidebar
+  addToDMList(user);
   renderRooms();
   renderDMList();
-  socket.emit('load_dm', { user });
+
+  // Request full history from server
+  socket.emit('load_dm', { user: user });
+
   closeModal('dm-modal');
+  closeAllSidebars();
 }
 
 // ======================= MESSAGING =======================
 function sendMsg() {
-  const input = document.getElementById('msg-input');
+  var input = document.getElementById('msg-input');
   if (!input) return;
-  const text = input.value.trim();
+  var text = input.value.trim();
   if (!text) return;
+
   if (text.startsWith('/ai')) {
-    const prompt = text.substring(4).trim();
+    var prompt = text.substring(3).trim();
     sendAIMessage(prompt || 'help');
     input.value = '';
     input.style.height = 'auto';
     return;
   }
-  if (currentDM) socket.emit('send_dm', { to: currentDM, text });
-  else socket.emit('send_message', { text });
+
+  if (currentDM) {
+    socket.emit('send_dm', { to: currentDM, text: text });
+  } else {
+    socket.emit('send_message', { text: text });
+  }
   input.value = '';
   input.style.height = 'auto';
 }
+
 function onKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); return; }
   socket.emit('typing');
@@ -562,147 +570,155 @@ function onInputChange(el) {
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-// ======================= AI ASSISTANT =======================
+// ======================= AI =======================
 async function sendAIMessage(prompt) {
   appendAIMessage(prompt, true);
-  const typingBar = document.getElementById('typing-bar');
-  if (typingBar) typingBar.innerHTML = '<span style="color:#6C63FF">🤖 AI Assistant is thinking...</span>';
+  var bar = document.getElementById('typing-bar');
+  if (bar) bar.innerHTML = '<span style="color:#6C63FF">🤖 AI is thinking…</span>';
   try {
-    const res = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await res.json();
-    if (typingBar) typingBar.innerHTML = '';
-    if (data.ok) appendAIMessage(data.response, false);
-    else appendAIMessage('❌ AI error. Please try again.', false);
+    var res  = await fetch('/api/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:prompt}) });
+    var data = await res.json();
+    if (bar) bar.innerHTML = '';
+    appendAIMessage(data.ok ? data.response : '❌ AI error. Please try again.', false);
   } catch(e) {
-    if (typingBar) typingBar.innerHTML = '';
-    appendAIMessage('❌ Network error. Could not reach AI.', false);
+    if (bar) bar.innerHTML = '';
+    appendAIMessage('❌ Network error.', false);
   }
 }
 function appendAIMessage(text, isUser) {
-  const box = document.getElementById('messages');
+  var box = document.getElementById('messages');
   if (!box) return;
-  const div = document.createElement('div');
-  div.className = `msg-wrap ${isUser ? 'mine' : ''}`;
+  var div = document.createElement('div');
+  div.className = 'msg-wrap' + (isUser?' mine':'');
   if (isUser) {
-    div.innerHTML = `
-      <div class="ava" style="background:${myColor};color:#fff">${initials(ME)}</div>
-      <div class="msg-main">
-        <div class="msg-header"><span class="msg-user" style="color:${myColor}">${ME}</span><span class="badge ${myBadge}">${myBadge}</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div>
-        <div class="msg-text">🤖 /ai ${escapeHtml(text)}</div>
-      </div>`;
+    div.innerHTML = '<div class="ava" style="background:'+myColor+';color:#fff">'+initials(ME)+'</div>'
+      + '<div class="msg-main"><div class="msg-header"><span class="msg-user" style="color:'+myColor+'">'+ME+'</span>'
+      + '<span class="badge '+myBadge+'">'+myBadge+'</span>'
+      + '<span class="msg-time">'+new Date().toLocaleTimeString()+'</span></div>'
+      + '<div class="msg-text">🤖 /ai '+escapeHtml(text)+'</div></div>';
   } else {
-    div.innerHTML = `
-      <div class="ava" style="background:#6C63FF;color:#fff">🤖</div>
-      <div class="msg-main">
-        <div class="msg-header"><span class="msg-user" style="color:#6C63FF">AI Assistant</span><span class="badge">AI</span><span class="msg-time">${new Date().toLocaleTimeString()}</span></div>
-        <div class="msg-text ai-response">${formatAIText(escapeHtml(text))}</div>
-      </div>`;
+    div.innerHTML = '<div class="ava" style="background:#6C63FF;color:#fff">🤖</div>'
+      + '<div class="msg-main"><div class="msg-header"><span class="msg-user" style="color:#6C63FF">AI Assistant</span>'
+      + '<span class="badge">AI</span><span class="msg-time">'+new Date().toLocaleTimeString()+'</span></div>'
+      + '<div class="msg-text ai-response">'+formatAIText(escapeHtml(text))+'</div></div>';
   }
   box.appendChild(div);
   scrollToBottom();
 }
-function formatAIText(t) { return t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'); }
+function formatAIText(t) { return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
 
 // ======================= MESSAGE RENDERING =======================
 function appendMsg(m, isDM) {
-  const box = document.getElementById('messages');
+  var box = document.getElementById('messages');
   if (!box) return;
-  const isMine = m.username === ME;
-  const div = document.createElement('div');
-  div.className = `msg-wrap ${isMine?'mine':''}`;
-  div.innerHTML = `
-    <div class="ava" style="background:${m.avatar_color||m.color||'#6C63FF'};color:#fff">${initials(m.username)}</div>
-    <div class="msg-main">
-      <div class="msg-header"><span class="msg-user" style="color:${m.avatar_color||m.color||'#6C63FF'}">${escapeHtml(m.username)}</span><span class="badge ${m.badge||'Member'}">${m.badge||'Member'}</span><span class="msg-time">${m.time||''}</span></div>
-      <div class="msg-text">${escapeHtml(m.text)}</div>
-      <div class="msg-reactions" id="rxn-${m.id}">${renderReactions(m.id, m.reactions||{})}</div>
-    </div>
-    <div class="msg-actions">
-      ${REACTIONS.map(e=>`<button class="rxn-btn" onclick="react(${m.id},'${e}')">${e}</button>`).join('')}
-      <button class="rxn-btn" onclick="shareMessage('${escapeHtml(m.text)}','${escapeHtml(m.username)}')">📤</button>
-    </div>
-  `;
+  var isMine = m.username === ME;
+  var div = document.createElement('div');
+  div.className = 'msg-wrap' + (isMine?' mine':'');
+  var color = m.avatar_color || m.color || '#6C63FF';
+  div.innerHTML =
+    '<div class="ava" style="background:'+color+';color:#fff">'+initials(m.username)+'</div>'
+    +'<div class="msg-main">'
+    +  '<div class="msg-header">'
+    +    '<span class="msg-user" style="color:'+color+'">'+escapeHtml(m.username)+'</span>'
+    +    '<span class="badge '+(m.badge||'Member')+'">'+(m.badge||'Member')+'</span>'
+    +    '<span class="msg-time">'+(m.time||'')+'</span>'
+    +  '</div>'
+    +  '<div class="msg-text">'+escapeHtml(m.text)+'</div>'
+    +  '<div class="msg-reactions" id="rxn-'+m.id+'">'+renderReactions(m.id, m.reactions||{})+'</div>'
+    +'</div>'
+    +'<div class="msg-actions">'
+    +  REACTIONS.map(function(e){ return '<button class="rxn-btn" onclick="react('+m.id+',\''+e+'\')">'+e+'</button>'; }).join('')
+    +  '<button class="rxn-btn" onclick="shareMessage(\''+esc(m.text)+'\',\''+esc(m.username)+'\')">📤</button>'
+    +'</div>';
   box.appendChild(div);
 }
+
 function renderReactions(msgId, rxns) {
-  return Object.entries(rxns).filter(([,c])=>c>0).map(([e,c])=>`<span class="rxn-badge" onclick="react(${msgId},'${e}')">${e}<span>${c}</span></span>`).join('');
+  return Object.entries(rxns).filter(function(kv){return kv[1]>0;}).map(function(kv){
+    return '<span class="rxn-badge" onclick="react('+msgId+',\''+kv[0]+'\')">'+kv[0]+'<span>'+kv[1]+'</span></span>';
+  }).join('');
 }
-function react(msgId, emoji) { socket.emit('react', { message_id: msgId, emoji }); }
+function react(msgId, emoji) { socket.emit('react', { message_id: msgId, emoji: emoji }); }
+
 function appendDateSep(d) {
-  const box = document.getElementById('messages');
+  var box = document.getElementById('messages');
   if (!box) return;
-  const div = document.createElement('div'); div.className = 'date-sep'; div.innerText = formatDate(d);
+  var div = document.createElement('div');
+  div.className = 'date-sep';
+  div.innerText = formatDate(d);
   box.appendChild(div);
 }
 function formatDate(d) {
-  const today = new Date().toISOString().split('T')[0];
+  var today = new Date().toISOString().split('T')[0];
   if (d === today) return 'Today';
-  const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  var yest  = new Date(Date.now()-86400000).toISOString().split('T')[0];
   if (d === yest) return 'Yesterday';
   return new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
 }
 
-// ======================= MODALS & PROFILE =======================
-function openModal(id) { const m = document.getElementById(id); if(m) m.classList.add('open'); }
-function closeModal(id) { const m = document.getElementById(id); if(m) m.classList.remove('open'); }
+// ======================= MODALS / PROFILE =======================
+function openModal(id)  { var m=document.getElementById(id); if(m) m.classList.add('open'); }
+function closeModal(id) { var m=document.getElementById(id); if(m) m.classList.remove('open'); }
+
 async function saveProfile() {
-  const bio = document.getElementById('prof-bio')?.value || '';
-  const selected = document.querySelector('.color-swatch.sel');
-  const color = selected ? selected.dataset.color : myColor;
-  const res = await fetch('/api/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bio,color}) });
-  const data = await res.json();
-  const alertDiv = document.getElementById('prof-alert');
+  var bio      = document.getElementById('prof-bio')?.value || '';
+  var selected = document.querySelector('.color-swatch.sel');
+  var color    = selected ? selected.dataset.color : myColor;
+  var res  = await fetch('/api/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({bio:bio,color:color}) });
+  var data = await res.json();
+  var alertDiv = document.getElementById('prof-alert');
   if (alertDiv) {
-    alertDiv.innerText = data.ok ? 'Saved!' : data.msg;
-    alertDiv.className = `alert-sm ${data.ok?'ok':'err'}`;
-    alertDiv.style.display = 'block';
+    alertDiv.innerText   = data.ok ? 'Saved!' : data.msg;
+    alertDiv.className   = 'alert-sm ' + (data.ok?'ok':'err');
     if (data.ok) { myColor = color; setAva('my-ava',ME,color); setAva('prof-ava',ME,color); }
-    setTimeout(()=>alertDiv.style.display='none', 2000);
+    setTimeout(function(){ alertDiv.className='alert-sm'; }, 2500);
   }
 }
+
 async function createRoom() {
-  const name = document.getElementById('new-room-name')?.value.trim();
-  const desc = document.getElementById('new-room-desc')?.value.trim();
+  var name = document.getElementById('new-room-name')?.value.trim();
+  var desc = document.getElementById('new-room-desc')?.value.trim();
   if (!name) return;
-  const res = await fetch('/api/rooms/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,description:desc}) });
-  const data = await res.json();
-  const alertDiv = document.getElementById('room-alert');
+  var res  = await fetch('/api/rooms/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name,description:desc}) });
+  var data = await res.json();
+  var alertDiv = document.getElementById('room-alert');
   if (alertDiv) {
-    alertDiv.innerText = data.ok ? `Room "${name}" created!` : data.msg;
-    alertDiv.className = `alert-sm ${data.ok?'ok':'err'}`;
-    alertDiv.style.display = 'block';
-    if (data.ok) { loadRooms(); document.getElementById('new-room-name').value = ''; document.getElementById('new-room-desc').value = ''; }
-    setTimeout(()=>alertDiv.style.display='none', 2000);
+    alertDiv.innerText = data.ok ? 'Room "'+name+'" created!' : data.msg;
+    alertDiv.className = 'alert-sm ' + (data.ok?'ok':'err');
+    if (data.ok) { loadRooms(); document.getElementById('new-room-name').value=''; document.getElementById('new-room-desc').value=''; }
+    setTimeout(function(){ alertDiv.className='alert-sm'; }, 2500);
   }
 }
+
 function openDM() {
-  const user = document.getElementById('dm-target')?.value.trim();
-  if (!user) return;
-  startDM(user);
-  closeModal('dm-modal');
+  var user = document.getElementById('dm-target')?.value.trim();
+  if (user) startDM(user);
 }
+
 function buildSwatches(selectedColor) {
-  const row = document.getElementById('color-swatches');
+  var row = document.getElementById('color-swatches');
   if (!row) return;
-  row.innerHTML = COLORS.map(c => `<div class="color-swatch ${c===selectedColor?'sel':''}" style="background:${c}" data-color="${c}" onclick="selColor(this,'${c}')"></div>`).join('');
+  row.innerHTML = COLORS.map(function(c) {
+    return '<div class="color-swatch '+(c===selectedColor?'sel':'')+'" style="background:'+c+'" data-color="'+c+'" onclick="selColor(this,\''+c+'\')"></div>';
+  }).join('');
 }
 function selColor(el, color) {
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+  document.querySelectorAll('.color-swatch').forEach(function(s){ s.classList.remove('sel'); });
   el.classList.add('sel');
-  const profAva = document.getElementById('prof-ava');
-  if (profAva) profAva.style.background = color;
+  var pa = document.getElementById('prof-ava'); if(pa) pa.style.background = color;
 }
-function initials(name) { return (name||'?').split(/[\s_]/).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
-function setAva(id, name, color) { const el = document.getElementById(id); if (el) { el.style.background = color; el.innerText = initials(name); } }
-function escapeHtml(s) { return (s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-function toggleSearch() { const p = document.getElementById('search-panel'); if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
-function onSearch(q) { /* optional global search */ }
-function roomSearch(q) { /* optional room search */ }
-function togglePanel() { const p = document.getElementById('right-panel'); if (p) p.style.display = p.style.display === 'none' ? '' : 'none'; }
+
+// ======================= UTILS =======================
+function initials(name)     { return ((name||'?').split(/[\s_]/).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2))||'?'; }
+function setAva(id,name,c)  { var e=document.getElementById(id); if(e){e.style.background=c;e.innerText=initials(name);e.style.color='#fff';} }
+function el(id,txt)         { var e=document.getElementById(id); if(e) e.innerText=txt; }
+function setVal(id,v)       { var e=document.getElementById(id); if(e) e.value=v; }
+function escapeHtml(s)      { return (s||'').replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+function esc(s)             { return (s||'').replace(/'/g,"\\'").replace(/\\/g,'\\\\'); }
+function toggleSearch()     { var p=document.getElementById('search-panel'); if(p) p.style.display=p.style.display==='none'?'block':'none'; }
+function togglePanel()      { var p=document.getElementById('right-panel'); if(p){if(window.innerWidth<=768)toggleMobilePanel();else p.style.display=p.style.display===''?'none':'';} }
+function onSearch(q)        {}
+function roomSearch(q)      {}
 </script>
 </body>
 </html>
