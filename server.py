@@ -28,7 +28,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 init_db()
 
@@ -709,4 +709,4 @@ def _fmt_time(iso_str):
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
-    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=False)
+    socketio.run(app, host='0.0.0.0', port=port)
